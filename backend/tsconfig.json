@@ -11,11 +11,15 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "types": [
-      "jest",
       "node"
     ]
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/__tests__/**/*"
   ]
 }
