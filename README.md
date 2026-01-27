@@ -39,7 +39,7 @@ This is a full-stack application designed to manage all aspects of a college, in
 
 ### Backend
 - **Runtime**: Node.js
-- **Language**: TypeScript
+- **Language**: JavaScript (ES6+)
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT (jsonwebtoken)
@@ -48,7 +48,7 @@ This is a full-stack application designed to manage all aspects of a college, in
 
 ### Frontend
 - **Library**: React 18
-- **Language**: TypeScript
+- **Language**: JavaScript (ES6+)
 - **Routing**: React Router v6
 - **State Management**: Zustand
 - **Data Fetching**: React Query, Axios
@@ -71,9 +71,9 @@ College Management/
 │   │   ├── services/        # Business logic
 │   │   ├── validators/      # Input validators
 │   │   ├── utils/           # Utility functions
-│   │   └── index.ts         # Entry point
+│   │   └── index.js         # Entry point
 │   ├── package.json
-│   ├── tsconfig.json
+│   ├── jsconfig.json
 │   └── .env.example
 │
 ├── frontend/
@@ -83,15 +83,14 @@ College Management/
 │   │   ├── store/          # Zustand stores
 │   │   ├── services/       # API services
 │   │   ├── hooks/          # Custom hooks
-│   │   ├── types/          # TypeScript types
 │   │   ├── utils/          # Utility functions
-│   │   ├── App.tsx         # Main app component
-│   │   ├── main.tsx        # Entry point
+│   │   ├── App.jsx         # Main app component
+│   │   ├── main.jsx        # Entry point
 │   │   └── index.css       # Global styles
 │   ├── public/
 │   ├── index.html
 │   ├── package.json
-│   ├── vite.config.ts
+│   ├── vite.config.js
 │   └── tailwind.config.js
 │
 └── docs/
@@ -268,7 +267,7 @@ VITE_API_URL=http://localhost:5000/api/v1
     street: String,
     city: String,
     state: String,
-    zipCode: String
+    pinCode: String
   },
   status: String,
   academicRecords: [{
