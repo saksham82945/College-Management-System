@@ -37,3 +37,22 @@ logs/
 # Uploads
 uploads/
 temp/
+
+# Test coverage
+coverage/
+*.lcov
+
+# Debug and temp files
+debug_output.txt
+books_loc.txt
+loc_stats.txt
+fix_imports.js
+
+# Old documentation (keeping README.md and docs/)
+COMPLETION_SUMMARY.md
+DOCUMENTATION_INDEX.md
+FEATURES_CHECKLIST.md
+PROJECT_SUMMARY.md
+QUICK_START.md
+SETUP_GUIDE.md
+LOGIN_CREDENTIALS.md
