@@ -1,0 +1,16 @@
+Counting Source Code Lines (excluding whitespace)...
+
+Scanned e:/Desktop/College Management/backend/src
+Scanned e:/Desktop/College Management/frontend/src
+
+-----------------------------
+Total Codebase Stats
+-----------------------------
+Total Source Files: 112
+Total Non-Empty Lines: 8926
+
+Breakdown by Language:
+  .ts: 3813 lines
+  .tsx: 5097 lines
+  .css: 16 lines
+-----------------------------

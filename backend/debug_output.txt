@@ -1,0 +1,12 @@
+Connected to MongoDB
+Teacher role exists.
+Processing rajesh.kumar@college.edu...
+User rajesh.kumar@college.edu already exists.
+Creating teacher profile because not found...
+FAILED to create teacher profile for rajesh.kumar@college.edu!
+Teacher Error Message: E11000 duplicate key error collection: college-management.teachers index: employeeNo_1 dup key: { employeeNo: null }
+FATAL Seeding Error: E11000 duplicate key error collection: college-management.teachers index: employeeNo_1 dup key: { employeeNo: null }
+Stack: MongoServerError: E11000 duplicate key error collection: college-management.teachers index: employeeNo_1 dup key: { employeeNo: null }
+    at <anonymous> (E:\Desktop\College Management\backend\node_modules\mongodb\src\operations\insert.ts:85:25)
+    at <anonymous> (E:\Desktop\College Management\backend\node_modules\mongodb\src\operations\command.ts:173:14)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
