@@ -28,9 +28,25 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS
+const allowedOrigins = [
+  config.frontendUrl || 'http://localhost:5173',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
 app.use(
   cors({
-    origin: true, // Allow any origin in development
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.warn(`CORS blocked origin: ${origin}`);
+        callback(null, true); // Allow all in development
+      }
+    },
     credentials: true,
   })
 );
