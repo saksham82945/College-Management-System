@@ -11,10 +11,16 @@ router.post('/register', auth_1.authRegister);
 router.post('/login', auth_1.authLogin);
 router.post('/refresh', auth_1.authRefresh);
 router.post('/reset-password', auth_1.resetPassword);
-// Example protected route
+// Get current authenticated user info
 router.get('/me', auth_2.authMiddleware, (req, res) => {
     res.json({
-        data: req.body,
+        success: true,
+        data: {
+            userId: req.user.userId,
+            email: req.user.email,
+            roles: req.user.roles,
+            fullName: req.user.fullName,
+        },
     });
 });
 exports.default = router;

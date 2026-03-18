@@ -1,0 +1,39 @@
+graph TB
+    Client["🌐 Client Layer<br/>React.js Frontend<br/>(Vite + Tailwind CSS)"]
+    
+    API["⚙️ API Layer<br/>Express.js Server<br/>(RESTful APIs)"]
+    
+    subgraph Services["🔧 Business Logic Layer"]
+        Auth["🔐 Auth Service"]
+        Student["👨‍🎓 Student Service"]
+        Teacher["👨‍🏫 Teacher Service"]
+        Attendance["📋 Attendance Service"]
+        Fee["💳 Fee Service"]
+        Exam["📝 Exam Service"]
+        Project["📚 Project Service"]
+        Payroll["💰 Payroll Service"]
+        Report["📊 Report Service"]
+    end
+    
+    Middleware["🛡️ Middleware Layer<br/>Authentication, Authorization<br/>Error Handling, Validation"]
+    
+    Database["💾 MongoDB<br/>(NoSQL Database)<br/>Multiple Collections"]
+    
+    Cache["⚡ Cache Layer<br/>(Redis - Optional)<br/>Session Management"]
+    
+    External["🌍 External Services<br/>Email Notifications<br/>Payment Gateway<br/>File Storage"]
+    
+    Client -->|HTTP/REST| API
+    API --> Middleware
+    Middleware --> Services
+    Services --> Database
+    Services -.->|Cache| Cache
+    API -.-> External
+    
+    style Client fill:#FF9999,stroke:#CC0000,stroke-width:2px,color:#fff
+    style API fill:#99CCFF,stroke:#0066CC,stroke-width:2px,color:#fff
+    style Services fill:#99FF99,stroke:#009900,stroke-width:2px,color:#000
+    style Middleware fill:#FFCC99,stroke:#FF9900,stroke-width:2px,color:#000
+    style Database fill:#CC99FF,stroke:#6600CC,stroke-width:2px,color:#fff
+    style Cache fill:#FFE699,stroke:#FFCC00,stroke-width:2px,color:#000
+    style External fill:#FF99CC,stroke:#FF0066,stroke-width:2px,color:#fff

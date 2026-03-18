@@ -1,0 +1,26 @@
+graph TB
+    Admin["👤 Admin<br/>(External Entity)"]
+    Student["👤 Students<br/>(External Entity)"]
+    Teacher["👤 Teachers<br/>(External Entity)"]
+    
+    CMS["🔄 College Management<br/>System<br/>(Main Process)"]
+    
+    DB["💾 MongoDB<br/>Database"]
+    
+    Admin -->|Login Credentials<br/>System Config| CMS
+    CMS -->|Reports & Analytics| Admin
+    
+    Student -->|Course Info, Attendance<br/>Fee Details| CMS
+    CMS -->|Grades, Timetable<br/>Project Submission| Student
+    
+    Teacher -->|Class Schedule<br/>Attendance Data| CMS
+    CMS -->|Student Records<br/>Performance Reports| Teacher
+    
+    CMS -->|Read/Write Data| DB
+    DB -->|Query Results| CMS
+    
+    style CMS fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    style DB fill:#50C878,stroke:#2E7D4E,stroke-width:2px,color:#fff
+    style Admin fill:#FFB347,stroke:#CC8833,stroke-width:2px
+    style Student fill:#FFB347,stroke:#CC8833,stroke-width:2px
+    style Teacher fill:#FFB347,stroke:#CC8833,stroke-width:2px

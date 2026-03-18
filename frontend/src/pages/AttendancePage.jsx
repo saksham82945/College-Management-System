@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
-import { useThemeStore } from '@/store/theme';
 import { useAuthStore } from '@/store/auth';
 import { apiClient } from '@/services/api';
-import { CheckCircle, XCircle, Clock, Search, Filter, Download, Calendar, Users, Loader2 } from 'lucide-react';
+import { 
+    CheckCircle, XCircle, Clock, Search, Filter, 
+    Download, Calendar, Users, Loader2, Save, 
+    History, ClipboardCheck, LayoutDashboard,
+    TrendingUp, UserCheck, UserX, AlertCircle
+} from 'lucide-react';
 import toast from 'react-hot-toast';
-import { DataTable } from '@/components/DataTable';
+import { DataTable, PageHeader, Button } from '@/components';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { useTheme } from '@/context/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MOCK_STUDENTS = [
     { _id: '65a1b2c3d4e5f60001000001', name: 'Aarav Sharma', rollNo: 'BCA001', class: 'BCA - Sem 1' },
@@ -31,7 +38,7 @@ const getLast30Days = () => {
 };
 
 export const AttendancePage = () => {
-    const { isDarkMode } = useThemeStore();
+    const { isDarkMode } = useTheme();
     const { user } = useAuthStore();
     const [selectedClass, setSelectedClass] = useState('All');
     const [selectedDate, setSelectedDate] = useState(getToday());
@@ -50,7 +57,6 @@ export const AttendancePage = () => {
     const isTeacher = user?.roles?.includes('TEACHER');
     const canMark = isAdmin || isTeacher;
 
-    // Fetch students from API, fall back to mock
     useEffect(() => {
         const fetchStudents = async () => {
             setLoading(true);
@@ -61,7 +67,7 @@ export const AttendancePage = () => {
                 if (Array.isArray(studentsArr) && studentsArr.length > 0) {
                     students = studentsArr.map(s => ({
                         _id: s.id || s._id,
-                        name: s.name || s.fullName || 'Unknown',
+                        name: s.userId?.fullName || s.name || s.fullName || 'Unknown',
                         rollNo: s.rollNo || s.rollNumber || '—',
                         class: s.course
                             ? `${s.course}${s.semester ? ' - Sem ' + s.semester : ''}`
@@ -72,14 +78,11 @@ export const AttendancePage = () => {
                 // API failed, use mock
             }
 
-            // Always include mock students so the page is never empty
             if (students.length === 0) {
                 students = MOCK_STUDENTS;
             }
 
             setAllStudents(students);
-
-            // Build dynamic class list from student data
             const uniqueClasses = [...new Set(students.map(s => s.class))].sort();
             setClasses(['All', ...uniqueClasses]);
             setSelectedClass('All');
@@ -88,10 +91,8 @@ export const AttendancePage = () => {
         fetchStudents();
     }, []);
 
-    // Initialize attendance statuses when students or date changes
     useEffect(() => {
         if (allStudents.length > 0) {
-            // Initialize all as present
             const map = {};
             allStudents.forEach(s => { map[s._id] = 'present'; });
             setAttendance(map);
@@ -99,7 +100,6 @@ export const AttendancePage = () => {
         }
     }, [allStudents, selectedDate, selectedClass]);
 
-    // Fetch existing attendance for selected date
     const fetchAttendanceForDate = useCallback(async () => {
         if (allStudents.length === 0) return;
         try {
@@ -114,7 +114,6 @@ export const AttendancePage = () => {
                 setAttendance(map);
             }
         } catch {
-            // Silently ignore — keep default
         }
     }, [selectedDate, allStudents]);
 
@@ -124,7 +123,6 @@ export const AttendancePage = () => {
         }
     }, [fetchAttendanceForDate]);
 
-    // Fetch history
     const fetchHistory = useCallback(async () => {
         setHistoryLoading(true);
         try {
@@ -162,7 +160,6 @@ export const AttendancePage = () => {
         if (activeTab === 'history') fetchHistory();
     }, [activeTab, fetchHistory]);
 
-    // Filter students by class & search
     const classStudents = allStudents.filter(s =>
         (selectedClass === 'All' || s.class === selectedClass) &&
         s.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -187,9 +184,8 @@ export const AttendancePage = () => {
                 subject: '',
             });
             setSubmitted(true);
-            toast.success(`Attendance saved for ${classStudents.length} students on ${selectedDate}`);
+            toast.success('Attendance recorded successfully');
         } catch (err) {
-            console.error('Save attendance error:', err);
             toast.error(err.response?.data?.message || 'Failed to save attendance');
         } finally {
             setSaving(false);
@@ -202,38 +198,55 @@ export const AttendancePage = () => {
         late: classStudents.filter(s => attendance[s._id] === 'late').length,
     };
 
-    const statusBtn = (id, status, label, Icon, colors) => (
+    const statusBtn = (id, status, label, Icon, activeClass, inactiveClass) => (
         <button
             onClick={() => canMark && setStatus(id, status)}
             disabled={!canMark}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${attendance[id] === status ? colors.active : colors.inactive} ${canMark ? 'cursor-pointer hover:opacity-90' : 'cursor-default opacity-60'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300
+                ${attendance[id] === status ? activeClass : inactiveClass} 
+                ${canMark ? 'hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed'}`}
         >
-            <Icon size={14} /> {label}
+            <Icon size={14} className={attendance[id] === status ? 'animate-pulse' : ''} />
+            {label}
         </button>
     );
 
-    const card = `rounded-2xl border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100 shadow-sm'}`;
-
     const markColumns = [
-        { label: '#', render: (_, i) => <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>{i + 1}</span> },
-        { label: 'Student', render: (s) => <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{s.name}</span> },
-        { label: 'Roll No.', render: (s) => <span className={`font-mono text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{s.rollNo}</span> },
-        { label: 'Class', render: (s) => <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{s.class}</span> },
+        { 
+            key: 'student', 
+            label: 'Student Name', 
+            render: (_, s) => (
+                <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-inner
+                        ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                        {s.name.charAt(0)}
+                    </div>
+                    <div>
+                        <p className={`font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{s.name}</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{s.rollNo}</p>
+                    </div>
+                </div>
+            )
+        },
+        { 
+            key: 'class', 
+            label: 'Class', 
+            render: (_, s) => <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">{s.class}</span> 
+        },
         {
-            label: 'Status', render: (s) => (
-                <div className="flex gap-2">
-                    {statusBtn(s._id, 'present', 'Present', CheckCircle, {
-                        active: 'bg-green-500 text-white',
-                        inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-100 text-gray-500 border border-gray-200',
-                    })}
-                    {statusBtn(s._id, 'absent', 'Absent', XCircle, {
-                        active: 'bg-red-500 text-white',
-                        inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-100 text-gray-500 border border-gray-200',
-                    })}
-                    {statusBtn(s._id, 'late', 'Late', Clock, {
-                        active: 'bg-yellow-500 text-white',
-                        inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-100 text-gray-500 border border-gray-200',
-                    })}
+            key: 'status', 
+            label: 'Mark Attendance', 
+            render: (_, s) => (
+                <div className="flex gap-3">
+                    {statusBtn(s._id, 'present', 'Present', UserCheck, 
+                        'bg-success text-white shadow-lg shadow-success/30', 
+                        isDarkMode ? 'bg-slate-800/50 text-slate-500 hover:bg-slate-800' : 'bg-slate-100 text-slate-400 hover:bg-slate-200')}
+                    {statusBtn(s._id, 'absent', 'Absent', UserX, 
+                        'bg-danger text-white shadow-lg shadow-danger/30', 
+                        isDarkMode ? 'bg-slate-800/50 text-slate-500 hover:bg-slate-800' : 'bg-slate-100 text-slate-400 hover:bg-slate-200')}
+                    {statusBtn(s._id, 'late', 'Late', Clock, 
+                        'bg-amber-500 text-white shadow-lg shadow-amber-500/30', 
+                        isDarkMode ? 'bg-slate-800/50 text-slate-500 hover:bg-slate-800' : 'bg-slate-100 text-slate-400 hover:bg-slate-200')}
                 </div>
             )
         }
@@ -241,27 +254,45 @@ export const AttendancePage = () => {
 
     const historyColumns = [
         {
-            label: 'Date',
-            render: (row) => <span className={`font-mono text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                {new Date(row.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </span>
+            key: 'date', label: 'Date',
+            render: (_, row) => (
+                <div className="flex items-center gap-3">
+                    <Calendar size={14} className="text-primary" />
+                    <span className={`font-black text-xs uppercase tracking-tighter ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {new Date(row.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                </div>
+            )
         },
-        { label: 'Present', render: (row) => <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">{row.present}</span> },
-        { label: 'Absent', render: (row) => <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">{row.absent}</span> },
-        { label: 'Late', render: (row) => <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">{row.late}</span> },
-        { label: 'Total', render: (row) => <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{row.total}</span> },
+        { 
+            key: 'metrics', 
+            label: 'Summary', 
+            render: (_, row) => (
+                <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 text-success text-[10px] font-black uppercase tracking-widest">
+                        <UserCheck size={10} /> {row.present} Present
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger/10 text-danger text-[10px] font-black uppercase tracking-widest">
+                        <UserX size={10} /> {row.absent} Absent
+                    </div>
+                </div>
+            )
+        },
         {
-            label: 'Attendance %', render: (row) => {
+            key: 'efficiency', 
+            label: 'Attendance %', 
+            render: (_, row) => {
                 const pct = row.total > 0 ? Math.round((row.present / row.total) * 100) : 0;
                 return (
-                    <div className="flex items-center gap-3">
-                        <div className={`w-24 h-2 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                            <div
-                                className={`h-2 rounded-full ${pct >= 75 ? 'bg-green-500' : pct >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                style={{ width: `${pct}%` }}
+                    <div className="flex items-center gap-4 min-w-[200px]">
+                        <div className={`flex-1 h-3 rounded-full relative overflow-hidden p-0.5 shadow-inner ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                className={`h-full rounded-full ${pct >= 75 ? 'bg-success' : pct >= 50 ? 'bg-amber-500' : 'bg-danger'}`}
                             />
                         </div>
-                        <span className={`text-xs font-semibold ${pct >= 75 ? 'text-green-600' : pct >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>{pct}%</span>
+                        <span className={`text-xs font-black tracking-tighter ${pct >= 75 ? 'text-success' : pct >= 50 ? 'text-amber-500' : 'text-danger'}`}>{pct}%</span>
                     </div>
                 );
             }
@@ -270,179 +301,212 @@ export const AttendancePage = () => {
 
     return (
         <Layout>
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                            <CheckCircle className="inline mr-2 text-green-500" size={30} />
-                            Attendance
-                        </h1>
-                        <p className={`mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Mark and review student attendance records
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => toast.success('Attendance report exported!')}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium text-sm hover:shadow-lg transition-all"
-                    >
-                        <Download size={16} /> Export Report
-                    </button>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-3 gap-4">
-                    {[
-                        { label: 'Present', count: stats.present, color: 'text-green-600', bg: isDarkMode ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-100' },
-                        { label: 'Absent', count: stats.absent, color: 'text-red-600', bg: isDarkMode ? 'bg-red-900/20 border-red-700' : 'bg-red-50 border-red-100' },
-                        { label: 'Late', count: stats.late, color: 'text-yellow-600', bg: isDarkMode ? 'bg-yellow-900/20 border-yellow-700' : 'bg-yellow-50 border-yellow-100' },
-                    ].map(s => (
-                        <div key={s.label} className={`rounded-2xl border p-4 text-center ${s.bg}`}>
-                            <p className={`text-3xl font-bold ${s.color}`}>{s.count}</p>
-                            <p className={`text-sm font-medium mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{s.label}</p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Tabs */}
-                <div className={`flex gap-1 p-1 rounded-xl w-fit ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    {['mark', 'history'].map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-5 py-2 rounded-lg text-sm font-semibold capitalize transition-all ${activeTab === tab
-                                ? 'bg-purple-600 text-white shadow'
-                                : isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
-                                }`}
+            <div className="max-w-7xl mx-auto px-4 pb-24 space-y-12">
+                <PageHeader
+                    title="Attendance Records"
+                    subtitle="Track and manage student attendance records across all departments"
+                    icon={ClipboardCheck}
+                    backTo="/dashboard"
+                    actions={
+                        <Button 
+                            variant="secondary" 
+                            icon={Download}
+                            onClick={() => toast.success('Attendance report exported')}
                         >
-                            {tab === 'mark' ? '✏️ Mark Attendance' : '📋 History'}
+                            Export Report
+                        </Button>
+                    }
+                />
+
+                {/* KPI Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <StatCard 
+                        title="Present Students" 
+                        value={stats.present} 
+                        icon={UserCheck} 
+                        color="text-success" 
+                        bg="bg-success/10" 
+                    />
+                    <StatCard 
+                        title="Absent Students" 
+                        value={stats.absent} 
+                        icon={UserX} 
+                        color="text-danger" 
+                        bg="bg-danger/10" 
+                    />
+                    <StatCard 
+                        title="Late Arrivals" 
+                        value={stats.late} 
+                        icon={Clock} 
+                        color="text-amber-500" 
+                        bg="bg-amber-500/10" 
+                    />
+                </div>
+
+                {/* Operational Interface */}
+                <div className={`p-2 rounded-[2rem] flex gap-2 w-fit mx-auto border glass-card
+                    ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                    {[
+                        { id: 'mark', label: 'Mark Attendance', icon: ClipboardCheck },
+                        { id: 'history', label: 'Attendance History', icon: History }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-3 px-8 py-3 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all duration-500
+                                ${activeTab === tab.id 
+                                    ? 'bg-primary text-white shadow-xl shadow-primary/25' 
+                                    : 'text-slate-500 hover:text-primary hover:bg-primary/5'}`}
+                        >
+                            <tab.icon size={18} />
+                            {tab.label}
                         </button>
                     ))}
                 </div>
 
-                {activeTab === 'mark' && (
-                    <>
-                        {/* Filters */}
-                        <div className={`${card} flex flex-col md:flex-row gap-4`}>
-                            <div className="flex-1">
-                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    <Filter size={12} className="inline mr-1" />Class / Section
-                                </label>
-                                <select
-                                    value={selectedClass}
-                                    onChange={e => { setSelectedClass(e.target.value); setSubmitted(false); }}
-                                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'} focus:outline-none focus:ring-2 focus:ring-purple-500`}
-                                >
-                                    {classes.map(c => <option key={c} value={c}>{c === 'All' ? '📋 All Students' : c}</option>)}
-                                </select>
-                            </div>
-                            <div className="flex-1">
-                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    <Calendar size={12} className="inline mr-1" />Date
-                                </label>
-                                <input
-                                    type="date"
-                                    value={selectedDate}
-                                    onChange={e => { setSelectedDate(e.target.value); setSubmitted(false); }}
-                                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'} focus:outline-none focus:ring-2 focus:ring-purple-500`}
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className={`block text-xs font-semibold mb-1 uppercase tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    <Search size={12} className="inline mr-1" />Search Student
-                                </label>
-                                <div className="relative">
-                                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <AnimatePresence mode="wait">
+                    {activeTab === 'mark' ? (
+                        <motion.div 
+                            key="mark-tab"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            className="space-y-8"
+                        >
+                            {/* Command Parameters */}
+                            <div className={`p-8 rounded-[2.5rem] border grid grid-cols-1 md:grid-cols-3 gap-8 glass-card
+                                ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100'}`}>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <Filter size={12} /> Select Class
+                                    </label>
+                                    <select
+                                        value={selectedClass}
+                                        onChange={e => { setSelectedClass(e.target.value); setSubmitted(false); }}
+                                        className={`w-full h-12 px-4 rounded-xl border text-sm font-bold focus:ring-4 transition-all
+                                            ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:ring-primary/20' : 'bg-slate-50 border-slate-200 focus:ring-primary/10'}`}
+                                    >
+                                        {classes.map(c => <option key={c} value={c}>{c === 'All' ? 'All Classes' : c}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <Calendar size={12} /> Select Date
+                                    </label>
                                     <input
-                                        type="text"
-                                        placeholder="Search by name..."
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                        className={`w-full pl-8 pr-3 py-2 rounded-lg border text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-200 placeholder-gray-400'} focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                                        type="date"
+                                        value={selectedDate}
+                                        onChange={e => { setSelectedDate(e.target.value); setSubmitted(false); }}
+                                        className={`w-full h-12 px-4 rounded-xl border text-sm font-bold focus:ring-4 transition-all
+                                            ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white focus:ring-primary/20' : 'bg-slate-50 border-slate-200 focus:ring-primary/10'}`}
                                     />
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Student List */}
-                        <div className={`rounded-2xl border overflow-hidden ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100 shadow-sm'}`}>
-                            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-100 bg-gray-50'}`}>
-                                <div className="flex items-center gap-2">
-                                    <Users size={16} className="text-purple-500" />
-                                    <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                                        {classStudents.length} Students{selectedClass !== 'All' ? ` — ${selectedClass}` : ''}
-                                    </span>
-                                    {loading && <Loader2 size={16} className="animate-spin text-purple-500 ml-2" />}
-                                </div>
-                                {canMark && classStudents.length > 0 && (
-                                    <div className="flex gap-2">
-                                        <button onClick={() => {
-                                            const updates = {};
-                                            classStudents.forEach(s => updates[s._id] = 'present');
-                                            setAttendance(prev => ({ ...prev, ...updates }));
-                                            setSubmitted(false);
-                                        }} className="text-xs px-3 py-1 rounded-lg bg-green-100 text-green-700 font-semibold hover:bg-green-200 transition-colors">
-                                            All Present
-                                        </button>
-                                        <button onClick={() => {
-                                            const updates = {};
-                                            classStudents.forEach(s => updates[s._id] = 'absent');
-                                            setAttendance(prev => ({ ...prev, ...updates }));
-                                            setSubmitted(false);
-                                        }} className="text-xs px-3 py-1 rounded-lg bg-red-100 text-red-700 font-semibold hover:bg-red-200 transition-colors">
-                                            All Absent
-                                        </button>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <Search size={12} /> Search Student
+                                    </label>
+                                    <div className="relative">
+                                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search by name or roll number..."
+                                            value={searchTerm}
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                            className={`w-full h-12 pl-12 pr-4 rounded-xl border text-sm font-bold focus:ring-4 transition-all
+                                                ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-600 focus:ring-primary/20' : 'bg-slate-50 border-slate-200 placeholder-slate-400 focus:ring-primary/10'}`}
+                                        />
                                     </div>
-                                )}
+                                </div>
                             </div>
 
-                            {loading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <Loader2 size={28} className="animate-spin text-purple-500" />
-                                    <span className={`ml-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Loading students...</span>
+                            {/* Main Register */}
+                            <div className={`rounded-[3rem] border overflow-hidden glass-card
+                                ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50'}`}>
+                                <div className={`px-10 py-6 border-b flex items-center justify-between
+                                    ${isDarkMode ? 'border-slate-800 bg-slate-900/80' : 'border-slate-50 bg-slate-50/50'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 text-primary rounded-xl">
+                                            <Users size={18} />
+                                        </div>
+                                        <div>
+                                            <span className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                                                {classStudents.length} Students
+                                            </span>
+                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mt-0.5">Class List</p>
+                                        </div>
+                                    </div>
+                                    {canMark && classStudents.length > 0 && (
+                                        <div className="flex gap-4">
+                                            <button onClick={() => {
+                                                const updates = {};
+                                                classStudents.forEach(s => updates[s._id] = 'present');
+                                                setAttendance(prev => ({ ...prev, ...updates }));
+                                                setSubmitted(false);
+                                            }} className="px-4 py-2 rounded-xl bg-success/10 text-success text-[10px] font-black uppercase tracking-widest hover:bg-success hover:text-white transition-all duration-300">
+                                                Mark All Present
+                                            </button>
+                                            <button onClick={() => {
+                                                const updates = {};
+                                                classStudents.forEach(s => updates[s._id] = 'absent');
+                                                setAttendance(prev => ({ ...prev, ...updates }));
+                                                setSubmitted(false);
+                                            }} className="px-4 py-2 rounded-xl bg-danger/10 text-danger text-[10px] font-black uppercase tracking-widest hover:bg-danger hover:text-white transition-all duration-300">
+                                                Mark All Absent
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
+
                                 <DataTable
                                     columns={markColumns}
                                     data={classStudents}
-                                    emptyTitle="No students found"
-                                    emptyDescription={`No students found${selectedClass !== 'All' ? ` in ${selectedClass}` : ''}. Try selecting a different class or clearing the search.`}
+                                    loading={loading}
+                                    emptyTitle="No Students Found"
+                                    emptyDescription="No students matching the selected criteria."
                                 />
-                            )}
 
-                            {canMark && classStudents.length > 0 && !loading && (
-                                <div className={`px-6 py-4 border-t flex justify-end ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={saving}
-                                        className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {saving && <Loader2 size={16} className="animate-spin" />}
-                                        {submitted ? '✅ Attendance Saved' : saving ? 'Saving...' : 'Save Attendance'}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
-
-                {activeTab === 'history' && (
-                    <div className={`rounded-2xl border overflow-hidden ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className={`px-6 py-4 border-b flex items-center justify-between ${isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-100 bg-gray-50'}`}>
-                            <h2 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Attendance Records — Last 30 Days</h2>
-                            {historyLoading && <Loader2 size={16} className="animate-spin text-purple-500" />}
-                        </div>
-                        <DataTable
-                            columns={historyColumns}
-                            data={historyData}
-                            loading={historyLoading}
-                            emptyTitle="No records found"
-                            emptyDescription="No attendance records found for the last 30 days. Mark attendance to see data here."
-                            headerClassName={isDarkMode ? 'bg-gray-900/30' : 'bg-gray-50'}
-                        />
-                    </div>
-                )}
+                                {canMark && classStudents.length > 0 && !loading && (
+                                    <div className={`px-10 py-8 border-t flex justify-end items-center gap-8 ${isDarkMode ? 'border-slate-800' : 'border-slate-50'}`}>
+                                        <p className="text-xs font-bold text-slate-500 italic">Please review the attendance before saving</p>
+                                        <Button
+                                            onClick={handleSubmit}
+                                            loading={saving}
+                                            icon={submitted ? CheckCircle : Save}
+                                            variant={submitted ? "secondary" : "primary"}
+                                            className="min-w-[200px]"
+                                        >
+                                            {submitted ? 'Attendance Saved' : 'Save Attendance'}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            key="history-tab"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className={`rounded-[3rem] border overflow-hidden glass-card
+                                ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50'}`}
+                        >
+                            <div className={`px-10 py-6 border-b flex items-center justify-between
+                                ${isDarkMode ? 'border-slate-800 bg-slate-900/80' : 'border-slate-50 bg-slate-50/50'}`}>
+                                <h2 className={`text-lg font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Attendance Logs</h2>
+                                {historyLoading && <Loader2 size={18} className="animate-spin text-primary" />}
+                            </div>
+                            <DataTable
+                                columns={historyColumns}
+                                data={historyData}
+                                loading={historyLoading}
+                                emptyTitle="No History Found"
+                                emptyDescription="No attendance records found for this period."
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </Layout>
     );
 };
+

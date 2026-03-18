@@ -4,11 +4,12 @@ import { Layout } from '@/components/Layout';
 import { apiClient } from '@/services/api';
 import toast from 'react-hot-toast';
 import { ChevronLeft, Users, Calendar, BookOpen } from 'lucide-react';
-import { useThemeStore } from '@/store/theme';
+import { useTheme } from '@/context/ThemeContext';
+
 export const ClassDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { isDarkMode } = useThemeStore();
+    const { isDarkMode } = useTheme();
     const [classData, setClassData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('students');
@@ -22,11 +23,11 @@ export const ClassDetailsPage = () => {
                     setClassData(response.data.data);
                 }
                 // Fetch students
-                const studentsRes = await apiClient.get('/students'); // In real app, use filtering `?classId=${id}`
+                const studentsRes = await apiClient.get(`/students?classId=${id}`);
                 if (studentsRes.data.success) {
-                    // Client side filter for demo if backend filter not ready
-                    const classStudents = studentsRes.data.data.filter((s) => s.classId?._id === id || s.classId === id);
-                    setStudents(classStudents);
+                    const d = studentsRes.data.data;
+                    const studentList = Array.isArray(d) ? d : (d.students || []);
+                    setStudents(studentList);
                 }
             }
             catch (error) {

@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
-import { FormField, FormSection } from '@/components';
+import { FormField, FormSection, Button, PageHeader } from '@/components';
 import { useFormData } from '@/hooks';
 import { apiClient } from '@/services/api';
 import toast from 'react-hot-toast';
-import { ChevronLeft, Save } from 'lucide-react';
-import { useThemeStore } from '@/store/theme';
+import { 
+    ChevronLeft, Save, User, Mail, Phone, Calendar, Hash, 
+    MapPin, GraduationCap, ShieldCheck, Heart, UserPlus, 
+    Smartphone, UserSquare 
+} from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
+import { motion } from 'framer-motion';
+
 const COURSE_OPTIONS = [
-    { value: '', label: 'Select Course' },
+    { value: '', label: 'Select' },
     { value: 'BCA', label: 'BCA' },
     { value: 'BBA', label: 'BBA' },
     { value: 'MBA (Finance)', label: 'MBA (Finance)' },
@@ -18,8 +24,9 @@ const COURSE_OPTIONS = [
     { value: 'MCA', label: 'MCA' },
     { value: 'BSc IT', label: 'BSc IT' },
 ];
+
 const SEMESTER_OPTIONS = [
-    { value: '', label: 'Select Semester' },
+    { value: '', label: 'Select' },
     { value: '1st', label: '1st Semester' },
     { value: '2nd', label: '2nd Semester' },
     { value: '3rd', label: '3rd Semester' },
@@ -29,15 +36,17 @@ const SEMESTER_OPTIONS = [
     { value: '7th', label: '7th Semester' },
     { value: '8th', label: '8th Semester' },
 ];
+
 const GENDER_OPTIONS = [
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' },
     { value: 'other', label: 'Other' },
 ];
+
 export const AddStudentPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const { isDarkMode } = useThemeStore();
+    const { isDarkMode } = useTheme();
     const { formData, handleChange } = useFormData({
         fullName: '',
         email: '',
@@ -64,6 +73,7 @@ export const AddStudentPage = () => {
             primaryEmail: ''
         }
     });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -73,57 +83,204 @@ export const AddStudentPage = () => {
             navigate('/students');
         }
         catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to add student');
+            toast.error(error.response?.data?.message || 'Admission process failed');
         }
         finally {
             setLoading(false);
         }
     };
-    return (<Layout>
-        <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-                <button onClick={() => navigate('/students')} className={`flex items-center ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
-                    <ChevronLeft size={20} className="mr-1" /> Back to Students
-                </button>
-                <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                    New Admission
-                </h1>
+
+    return (
+        <Layout>
+            <div className="max-w-5xl mx-auto px-4 pb-20">
+                <PageHeader
+                    title="Student Admission"
+                    subtitle="Add a new student to the institution"
+                    icon={UserPlus}
+                    backTo="/students"
+                />
+
+                <form onSubmit={handleSubmit} className="space-y-12 mt-12">
+                    {/* Primary Identity Section */}
+                    <FormSection 
+                        title="Personal Details" 
+                        icon={UserSquare} 
+                        description="Full name and contact information"
+                    >
+                        <FormField 
+                            label="Full Name" 
+                            name="fullName" 
+                            value={formData.fullName} 
+                            onChange={handleChange} 
+                            required 
+                            icon={User}
+                            placeholder="Full Name"
+                        />
+                        <FormField 
+                            label="Roll Number" 
+                            name="rollNo" 
+                            value={formData.rollNo} 
+                            onChange={handleChange} 
+                            required 
+                            icon={Hash}
+                            placeholder="Roll Number"
+                        />
+                        <FormField 
+                            label="Email Address" 
+                            name="email" 
+                            type="email" 
+                            value={formData.email} 
+                            onChange={handleChange} 
+                            required 
+                            icon={Mail}
+                            placeholder="email@lnmi.ac.in"
+                        />
+                        <FormField 
+                            label="Phone Number" 
+                            name="phone" 
+                            type="tel" 
+                            value={formData.phone} 
+                            onChange={handleChange} 
+                            required 
+                            icon={Smartphone}
+                            placeholder="Phone Number"
+                        />
+                        <FormField 
+                            label="Date of Birth" 
+                            name="dateOfBirth" 
+                            type="date" 
+                            value={formData.dateOfBirth} 
+                            onChange={handleChange} 
+                            icon={Calendar}
+                        />
+                        <FormField 
+                            label="Gender" 
+                            name="gender" 
+                            value={formData.gender} 
+                            onChange={handleChange} 
+                            as="select" 
+                            options={GENDER_OPTIONS} 
+                            icon={Heart}
+                        />
+                    </FormSection>
+
+                    {/* Academic Enrollment Section */}
+                    <FormSection 
+                        title="Academic Details" 
+                        icon={ShieldCheck} 
+                        description="Course and semester details"
+                    >
+                        <FormField 
+                            label="Course" 
+                            name="course" 
+                            value={formData.course} 
+                            onChange={handleChange} 
+                            as="select" 
+                            options={COURSE_OPTIONS} 
+                            required 
+                            icon={GraduationCap}
+                        />
+                        <FormField 
+                            label="Semester" 
+                            name="semester" 
+                            value={formData.semester} 
+                            onChange={handleChange} 
+                            as="select" 
+                            options={SEMESTER_OPTIONS} 
+                            required 
+                            icon={Calendar}
+                        />
+                        <FormField 
+                            label="Section" 
+                            name="section" 
+                            value={formData.section} 
+                            onChange={handleChange} 
+                            placeholder="Section"
+                        />
+                    </FormSection>
+
+                    {/* Geographical Baseline Section */}
+                    <FormSection 
+                        title="Address Details" 
+                        icon={MapPin} 
+                        description="Permanent address for official records"
+                    >
+                        <div className="md:col-span-2">
+                            <FormField 
+                                label="Street Address" 
+                                name="address.street" 
+                                value={formData.address.street} 
+                                onChange={handleChange} 
+                                placeholder="Street Address"
+                            />
+                        </div>
+                        <FormField 
+                            label="City" 
+                            name="address.city" 
+                            value={formData.address.city} 
+                            onChange={handleChange} 
+                        />
+                        <FormField 
+                            label="State" 
+                            name="address.state" 
+                            value={formData.address.state} 
+                            onChange={handleChange} 
+                        />
+                    </FormSection>
+
+                    {/* Guardian Proxy Section */}
+                    <FormSection 
+                        title="Guardian Information" 
+                        icon={ShieldCheck} 
+                        description="Parental details and emergency contacts"
+                    >
+                        <FormField 
+                            label="Father's Name" 
+                            name="guardianInfo.fatherName" 
+                            value={formData.guardianInfo.fatherName} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                        <FormField 
+                            label="Mother's Name" 
+                            name="guardianInfo.motherName" 
+                            value={formData.guardianInfo.motherName} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                        <FormField 
+                            label="Father's Phone Number" 
+                            name="guardianInfo.fatherPhone" 
+                            type="tel" 
+                            value={formData.guardianInfo.fatherPhone} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                    </FormSection>
+
+                    {/* Form Controls */}
+                    <div className="flex justify-end gap-6 pt-8">
+                        <Button 
+                            variant="secondary" 
+                            size="lg" 
+                            onClick={() => navigate('/students')}
+                            className="!px-10"
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="primary" 
+                            type="submit" 
+                            loading={loading}
+                            icon={Save}
+                            className="!px-12"
+                        >
+                            Add Student
+                        </Button>
+                    </div>
+                </form>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Student Details */}
-                <FormSection title="Student Details">
-                    <FormField label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required />
-                    <FormField label="Roll Number" name="rollNo" value={formData.rollNo} onChange={handleChange} required />
-                    <FormField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required />
-                    <FormField label="Phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} required />
-                    <FormField label="Date of Birth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} />
-                    <FormField label="Gender" name="gender" value={formData.gender} onChange={handleChange} as="select" options={GENDER_OPTIONS} />
-                </FormSection>
-
-                {/* Academic Info */}
-                <FormSection title="Academic Info">
-                    <FormField label="Course" name="course" value={formData.course} onChange={handleChange} as="select" options={COURSE_OPTIONS} required />
-                    <FormField label="Semester" name="semester" value={formData.semester} onChange={handleChange} as="select" options={SEMESTER_OPTIONS} required />
-                    <FormField label="Section" name="section" value={formData.section} onChange={handleChange} />
-                </FormSection>
-
-                {/* Guardian Info */}
-                <FormSection title="Guardian Info">
-                    <FormField label="Father Name" name="guardianInfo.fatherName" value={formData.guardianInfo.fatherName} onChange={handleChange} required />
-                    <FormField label="Mother Name" name="guardianInfo.motherName" value={formData.guardianInfo.motherName} onChange={handleChange} required />
-                    <FormField label="Father Phone" name="guardianInfo.fatherPhone" type="tel" value={formData.guardianInfo.fatherPhone} onChange={handleChange} required />
-                </FormSection>
-
-                <div className="flex justify-end gap-4">
-                    <button type="button" onClick={() => navigate('/students')} className={`px-6 py-2 border rounded transition-colors ${isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'hover:bg-gray-50'}`}>
-                        Cancel
-                    </button>
-                    <button type="submit" disabled={loading} className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded hover:shadow-lg transition-all flex items-center">
-                        {loading ? 'Saving...' : <><Save size={18} className="mr-2" /> Submit Admission</>}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </Layout>);
+        </Layout>
+    );
 };
+

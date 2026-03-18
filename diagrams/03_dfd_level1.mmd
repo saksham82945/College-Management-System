@@ -1,0 +1,59 @@
+graph TB
+    User["👥 Users<br/>"]
+    
+    Auth["🔐 Authentication<br/>Module"]
+    StudentMgmt["👨‍🎓 Student<br/>Management"]
+    Attendance["📋 Attendance<br/>Module"]
+    Fee["💰 Fee<br/>Management"]
+    Project["📚 Project<br/>Module"]
+    Exam["📝 Exam<br/>Module"]
+    Dashboard["📊 Dashboard<br/>Module"]
+    
+    DB["💾 MongoDB<br/>Database"]
+    
+    User -->|Login| Auth
+    Auth -->|Token| User
+    
+    User -->|Student Info| StudentMgmt
+    StudentMgmt -->|Enrolled Courses| User
+    
+    User -->|Mark Attendance| Attendance
+    Attendance -->|Report| User
+    
+    User -->|Fee Payment| Fee
+    Fee -->|Receipt| User
+    
+    User -->|Submit Project| Project
+    Project -->|Feedback| User
+    
+    User -->|Exam Schedule| Exam
+    Exam -->|Marks| User
+    
+    User -->|View Stats| Dashboard
+    Dashboard -->|Analytics| User
+    
+    Auth -->|User Data| DB
+    StudentMgmt -->|Student Records| DB
+    Attendance -->|Attendance Records| DB
+    Fee -->|Payment Data| DB
+    Project -->|Project Records| DB
+    Exam -->|Exam Data| DB
+    Dashboard -->|Query Data| DB
+    
+    DB -->|Return Data| Auth
+    DB -->|Return Data| StudentMgmt
+    DB -->|Return Data| Attendance
+    DB -->|Return Data| Fee
+    DB -->|Return Data| Project
+    DB -->|Return Data| Exam
+    DB -->|Return Data| Dashboard
+    
+    style Auth fill:#FF6B6B,stroke:#CC0000,stroke-width:2px,color:#fff
+    style StudentMgmt fill:#4ECDC4,stroke:#0B9A9A,stroke-width:2px,color:#fff
+    style Attendance fill:#45B7D1,stroke:#0084B0,stroke-width:2px,color:#fff
+    style Fee fill:#96CEB4,stroke:#5FA081,stroke-width:2px,color:#fff
+    style Project fill:#FFEAA7,stroke:#CCAA00,stroke-width:2px
+    style Exam fill:#DDA15E,stroke:#AA6633,stroke-width:2px,color:#fff
+    style Dashboard fill:#BC6C25,stroke:#8B3E00,stroke-width:2px,color:#fff
+    style DB fill:#50C878,stroke:#2E7D4E,stroke-width:3px,color:#fff
+    style User fill:#FFB347,stroke:#CC8833,stroke-width:2px

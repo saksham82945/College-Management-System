@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { apiClient } from '@/services/api';
-import { Plus, Search, Users, Calendar, BookOpen, Edit } from 'lucide-react';
+import { Plus, Search, Users, Calendar, BookOpen, Edit2, ShieldCheck, GraduationCap, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useThemeStore } from '@/store/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader, Button, Input } from '@/components';
+import { StatCard } from '@/components/dashboard/StatCard';
+
 export const ClassesPage = () => {
     const [classes, setClasses] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const { isDarkMode } = useThemeStore();
+    const { isDarkMode } = useTheme();
+    
     // Form State
     const [formData, setFormData] = useState({
         name: '',
@@ -19,42 +24,47 @@ export const ClassesPage = () => {
         academicYear: new Date().getFullYear().toString(),
         classTeacher: ''
     });
+
     const navigate = useNavigate();
+
     useEffect(() => {
         fetchClasses();
         fetchTeachers();
     }, []);
+
     const fetchClasses = async () => {
         try {
             const response = await apiClient.get('/classes');
-            if (response.data.success) {
-                setClasses(response.data.data);
-            }
-        }
-        catch (error) {
+            if (response.data.success) setClasses(response.data.data);
+        } catch (error) {
             console.error('Failed to fetch classes', error);
             toast.error('Failed to load classes');
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
     };
+
     const fetchTeachers = async () => {
         try {
             const response = await apiClient.get('/teachers');
-            if (response.data.success) {
-                setTeachers(response.data.data);
-            }
-        }
-        catch (error) {
+            if (response.data.success) setTeachers(response.data.data);
+        } catch (error) {
             console.error('Failed to fetch teachers', error);
         }
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            await apiClient.post('/classes', formData);
-            toast.success('Class created successfully');
+        const isEditing = !!formData.id;
+        const promise = isEditing 
+            ? apiClient.put(`/classes/${formData.id}`, formData)
+            : apiClient.post('/classes', formData);
+
+        toast.promise(promise, {
+            loading: isEditing ? 'Updating class...' : 'Creating new class...',
+            success: isEditing ? 'Class updated successfully!' : 'Class created successfully!',
+            error: (err) => err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} class`
+        }).then(() => {
             setShowModal(false);
             fetchClasses();
             setFormData({
@@ -63,152 +73,225 @@ export const ClassesPage = () => {
                 academicYear: new Date().getFullYear().toString(),
                 classTeacher: ''
             });
-        }
-        catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to create class');
-        }
+        });
     };
-    const filteredClasses = classes.filter(cls => cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cls.section.toLowerCase().includes(searchTerm.toLowerCase()));
-    const inputClasses = `w-full rounded-xl border px-4 py-2 focus:outline-none focus:ring-2 transition-all ${isDarkMode
-        ? 'bg-gray-800 border-gray-700 text-white focus:ring-purple-500/50'
-        : 'bg-white border-gray-200 text-gray-900 focus:ring-purple-500/20'}`;
-    return (<Layout>
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div>
-                    <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Class Management</h1>
-                    <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Manage academic classes and sections</p>
-                </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20}/>
-                        <input type="text" placeholder="Search classes..." className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${isDarkMode
-            ? 'bg-gray-900 border-gray-700 text-white focus:ring-purple-500/20'
-            : 'bg-white border-gray-200 text-gray-900 focus:ring-primary/20'}`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-                    </div>
-                    <button onClick={() => setShowModal(true)} className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all">
-                        <Plus size={20} className="mr-2"/> New Class
-                    </button>
-                </div>
-            </div>
 
-            {loading ? (<div className="flex justify-center py-20">
-                    <div className="h-10 w-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>) : filteredClasses.length === 0 ? (<div className={`text-center py-20 rounded-2xl border border-dashed ${isDarkMode ? 'bg-gray-900/50 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-                    <div className="flex justify-center mb-4">
-                        <div className={`p-4 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-white shadow-sm'}`}>
-                            <BookOpen size={32} className="text-purple-500"/>
-                        </div>
+    const filteredClasses = classes.filter(cls => 
+        cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cls.section.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <Layout>
+            <div className="max-w-7xl mx-auto px-6 pb-24 space-y-12">
+                <PageHeader
+                    title="Classes"
+                    subtitle={`Managing ${classes.length} academic classes`}
+                    icon={BookOpen}
+                    backTo="/dashboard"
+                    actions={
+                        <Button 
+                            onClick={() => setShowModal(true)} 
+                            icon={Plus}
+                        >
+                            Add Class
+                        </Button>
+                    }
+                />
+
+                {/* Overview Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <StatCard title="Total Classes" value={classes.length} icon={ShieldCheck} color="text-primary" bg="bg-primary/10" />
+                    <StatCard title="Total Students" value={classes.reduce((acc, c) => acc + (c.studentCount || 0), 0)} icon={Users} color="text-emerald-500" bg="bg-emerald-500/10" />
+                    <StatCard title="Current Year" value={new Date().getFullYear()} icon={Calendar} color="text-amber-500" bg="bg-amber-500/10" />
+                </div>
+
+                {/* Search & Filters */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex-1 w-full max-w-xl">
+                        <Input 
+                            type="search" 
+                            placeholder="Search for classes, sections or teachers..." 
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            icon={Search}
+                        />
                     </div>
-                    <h3 className="text-lg font-semibold mb-1">No Classes Found</h3>
-                    <p className="mb-6">Get started by creating your first class</p>
-                    <button onClick={() => setShowModal(true)} className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                        Create Class
-                    </button>
-                </div>) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredClasses.map((cls) => (<div key={cls._id} className={`rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-all ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-100'}`}>
-                            <div className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center text-purple-600 font-bold text-xl border border-purple-500/20">
-                                            {cls.name}
+                </div>
+
+                {/* Classes Matrix */}
+                {loading ? (
+                    <div className="py-32 flex flex-col items-center justify-center gap-4">
+                        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Loading Classes</span>
+                    </div>
+                ) : filteredClasses.length === 0 ? (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="py-32 text-center glass-card rounded-[3.5rem] border border-dashed border-slate-200 dark:border-slate-800"
+                    >
+                        <div className="w-24 h-24 bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shrink-0">
+                            <GraduationCap size={40} className="text-slate-300" />
+                        </div>
+                        <h3 className="text-xl font-black tracking-tight text-slate-400 uppercase">No Classes Found</h3>
+                        <p className="text-slate-500 font-bold mt-1">No classes have been registered yet.</p>
+                    </motion.div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <AnimatePresence>
+                            {filteredClasses.map((cls, i) => (
+                                <motion.div 
+                                    key={cls._id}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="group relative"
+                                >
+                                    <div className="absolute -inset-1 bg-gradient-to-br from-primary to-indigo-600 rounded-[3rem] blur opacity-0 group-hover:opacity-20 transition duration-500" />
+                                    <div className={`relative glass-card rounded-[3rem] border overflow-hidden transition-all duration-500
+                                        ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50 hover:-translate-y-2'}`}>
+                                        <div className="p-8">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20">
+                                                        {cls.name}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{cls.name}</h3>
+                                                        <span className="px-3 py-1 rounded-xl bg-primary/10 text-primary text-[10px] font-black tracking-widest uppercase">Section {cls.section}</span>
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFormData({
+                                                            id: cls._id,
+                                                            name: cls.name,
+                                                            section: cls.section,
+                                                            academicYear: cls.academicYear,
+                                                            classTeacher: cls.classTeacher?._id || cls.classTeacher || ''
+                                                        });
+                                                        setShowModal(true);
+                                                    }}
+                                                    className="p-2 text-slate-400 hover:text-primary transition-colors"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400">
+                                                        <Users size={14} />
+                                                    </div>
+                                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{cls.studentCount} Students</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400">
+                                                        <Calendar size={14} />
+                                                    </div>
+                                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Year {cls.academicYear}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-[10px]">CT</div>
+                                                    <span className="text-[11px] font-black text-slate-600 dark:text-slate-400">
+                                                        {cls.classTeacher ? cls.classTeacher.fullName : 'Teacher Not Assigned'}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                                                Class {cls.name}
-                                            </h3>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                                                Section {cls.section}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-50 text-gray-500'}`}>
-                                            <Edit size={16}/>
+
+                                        <button 
+                                            onClick={() => navigate(`/classes/${cls._id}`)}
+                                            className={`w-full py-5 px-8 flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em] transition-all
+                                                ${isDarkMode ? 'bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-primary border-t border-slate-100'}`}
+                                        >
+                                            View Details
+                                            <ArrowRight size={14} />
                                         </button>
                                     </div>
-                                </div>
-
-                                <div className="space-y-3 pt-2">
-                                    <div className={`flex items-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        <Users size={16} className="mr-3 opacity-70"/>
-                                        {cls.studentCount} Students Enrolled
-                                    </div>
-                                    <div className={`flex items-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        <Calendar size={16} className="mr-3 opacity-70"/>
-                                        Academic Year {cls.academicYear}
-                                    </div>
-                                    <div className={`flex items-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        <div className="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center text-[10px] text-white font-bold mr-3">T</div>
-                                        {cls.classTeacher
-                    ? cls.classTeacher.fullName
-                    : 'No Class Teacher Assigned'}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className={`px-6 py-3 border-t flex justify-between items-center ${isDarkMode ? 'bg-gray-800/50 border-gray-800' : 'bg-gray-50 border-gray-100'}`}>
-                                <button className="text-purple-500 text-sm font-medium hover:underline" onClick={() => navigate(`/classes/${cls._id}`)}>
-                                    View Details
-                                </button>
-                                <button className="text-sm font-medium text-gray-500 hover:text-purple-500 transition-colors">
-                                    Attendance
-                                </button>
-                            </div>
-                        </div>))}
-                </div>)}
-
-            {/* Create Class Modal */}
-            {showModal && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className={`relative w-full max-w-md rounded-2xl shadow-2xl p-6 ${isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white'}`}>
-                        <h2 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                            Create New Class
-                        </h2>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Class Name
-                                    </label>
-                                    <input type="text" className={inputClasses} placeholder="e.g. 10" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required/>
-                                </div>
-                                <div>
-                                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Section
-                                    </label>
-                                    <input type="text" className={inputClasses} placeholder="e.g. A" value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} required/>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Academic Year
-                                </label>
-                                <input type="text" className={inputClasses} value={formData.academicYear} onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} required/>
-                            </div>
-
-                            <div>
-                                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Class Teacher
-                                </label>
-                                <select className={`${inputClasses} appearance-auto`} value={formData.classTeacher} onChange={(e) => setFormData({ ...formData, classTeacher: e.target.value })}>
-                                    <option value="">Select Class Teacher</option>
-                                    {teachers && teachers.length > 0 ? (teachers.filter(t => t.userId).map(teacher => (<option key={teacher._id} value={teacher.userId._id}>
-                                                {teacher.userId.fullName}
-                                            </option>))) : (<option value="" disabled>No teachers found - Add in Faculty section</option>)}
-                                </select>
-                            </div>
-
-                            <div className="flex justify-end gap-3 mt-8">
-                                <button type="button" onClick={() => setShowModal(false)} className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDarkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                                    Cancel
-                                </button>
-                                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
-                                    Create Class
-                                </button>
-                            </div>
-                        </form>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
-                </div>)}
-        </Layout>);
+                )}
+
+                {/* Addition Modal */}
+                <AnimatePresence>
+                    {showModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowModal(false)}
+                                className="absolute inset-0 bg-slate-950/40 backdrop-blur-xl"
+                            />
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className={`relative w-full max-w-xl rounded-[3rem] p-10 border shadow-2xl overflow-hidden
+                                    ${isDarkMode ? 'bg-slate-950 border-slate-800 shadow-none' : 'bg-white border-slate-100'}`}
+                            >
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                                        {formData.id ? 'Edit Class' : 'Add New Class'}
+                                    </h2>
+                                    <button onClick={() => setShowModal(false)} className="p-3 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-2xl transition-colors">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <Input 
+                                            label="Class Name" 
+                                            placeholder="e.g. 10" 
+                                            value={formData.name} 
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                                            required 
+                                        />
+                                        <Input 
+                                            label="Section" 
+                                            placeholder="e.g. A" 
+                                            value={formData.section} 
+                                            onChange={(e) => setFormData({ ...formData, section: e.target.value })} 
+                                            required 
+                                        />
+                                    </div>
+                                    <Input 
+                                        label="Academic Year" 
+                                        value={formData.academicYear} 
+                                        onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} 
+                                        required 
+                                    />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Class Teacher</label>
+                                        <select 
+                                            className={`w-full h-14 px-6 rounded-2xl border text-sm font-bold outline-none transition-all focus:ring-4 focus:ring-primary/20 appearance-none
+                                                ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white focus:border-primary' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-primary'}`}
+                                            value={formData.classTeacher} 
+                                            onChange={(e) => setFormData({ ...formData, classTeacher: e.target.value })}
+                                        >
+                                            <option value="">SELECT TEACHER</option>
+                                            {teachers.filter(t => t.userId).map(teacher => (
+                                                <option key={teacher._id} value={teacher.userId._id}>{teacher.userId.fullName}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="flex gap-4 pt-4">
+                                        <Button variant="secondary" className="flex-1" onClick={() => setShowModal(false)}>Cancel</Button>
+                                        <Button type="submit" className="flex-1">Add Class</Button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </Layout>
+    );
 };

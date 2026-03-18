@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAuthStore } from '@/store/auth';
-import { useThemeStore } from '@/store/theme';
-import { Calendar, Clock, BookOpen, Plus } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
+import { Calendar, Clock, BookOpen, Plus, ShieldCheck, Hourglass, CheckCircle2, CalendarDays, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '@/services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader, Button } from '@/components';
+import { StatCard } from '@/components/dashboard/StatCard';
 
 export const ExamsPage = () => {
     const { user } = useAuthStore();
-    const { isDarkMode } = useThemeStore();
+    const { isDarkMode } = useTheme();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [exams, setExams] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -24,14 +27,13 @@ export const ExamsPage = () => {
                 setExams(response.data.data);
             }
         } catch (error) {
-            console.error('Failed to fetch exams:', error);
             toast.error('Failed to load exams');
         } finally {
             setIsLoading(false);
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetchExams();
     }, []);
 
@@ -40,143 +42,219 @@ export const ExamsPage = () => {
     const handleCreateExam = async (e) => {
         e.preventDefault();
         try {
-            const response = await apiClient.post('/exams', formData);
+            // Ensure we send classId which is often required in backend
+            const payload = {
+                ...formData,
+                classId: formData.course // Assuming course field in UI maps to classId in back
+            };
+            const response = await apiClient.post('/exams', payload);
             if (response.data && response.data.success) {
                 toast.success('Exam scheduled successfully');
                 setIsCreateModalOpen(false);
-                fetchExams(); // Refresh list
-                setFormData({ title: '', date: '', time: '', course: 'BCA' }); // Reset form
+                fetchExams();
+                setFormData({ title: '', date: '', time: '', course: 'BCA' });
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to schedule exam');
         }
     };
 
-    const cardClass = `p-6 rounded-xl border transition-all ${isDarkMode
-        ? 'bg-gray-800 border-gray-700 hover:border-purple-500/50'
-        : 'bg-white border-gray-100 shadow-sm hover:shadow-md'
-        }`;
+    const inputCls = `w-full h-12 px-4 rounded-xl border text-sm font-bold outline-none transition-all focus:ring-4 focus:ring-primary/20
+        ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-600 focus:border-primary' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-primary placeholder-slate-400'}`;
+
+    const upcomingExams = exams.filter(e => new Date(e.date) >= new Date()).length;
+    const completedExams = exams.length - upcomingExams;
 
     return (
         <Layout>
-            <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                    <div>
-                        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Examination Schedule</h1>
-                        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Upcoming exams and tests</p>
-                    </div>
-                    {canCreateExam && (
-                        <button
+            <div className="max-w-7xl mx-auto px-4 pb-24 space-y-12">
+                <PageHeader
+                    title="Exams"
+                    subtitle="Manage and schedule academic examinations"
+                    icon={CalendarDays}
+                    backTo="/dashboard"
+                    actions={canCreateExam && (
+                        <Button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+                            icon={Plus}
                         >
-                            <Plus size={18} /> Schedule Exam
-                        </button>
+                            Add Exam
+                        </Button>
                     )}
+                />
+
+                {/* Examination KPIs */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <StatCard 
+                        title="Total Exams" 
+                        value={exams.length} 
+                        icon={BookOpen} 
+                        color="text-primary" 
+                        bg="bg-primary/10" 
+                    />
+                    <StatCard 
+                        title="Upcoming Exams" 
+                        value={upcomingExams} 
+                        icon={Hourglass} 
+                        color="text-amber-500" 
+                        bg="bg-amber-500/10" 
+                    />
+                    <StatCard 
+                        title="Completed Exams" 
+                        value={completedExams} 
+                        icon={CheckCircle2} 
+                        color="text-success" 
+                        bg="bg-success/10" 
+                    />
                 </div>
 
-                {/* Filters */}
-                <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-                    <button className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap ${isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'}`}>All Exams</button>
-                    <button className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap ${isDarkMode ? 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>Upcoming</button>
-                    <button className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap ${isDarkMode ? 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>Completed</button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {isLoading ? (
-                        <div className={`col-span-full text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Loading exams...
-                        </div>
-                    ) : exams.length === 0 ? (
-                        <div className={`col-span-full text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            No exams currently scheduled.
-                        </div>
-                    ) : exams.map((exam) => (
-                        <div key={exam.id} className={cardClass}>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
-                                    <BookOpen size={24} />
-                                </div>
-                                <span className={`text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    {exam.type || 'Written'}
-                                </span>
-                            </div>
-
-                            <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{exam.title}</h3>
-
-                            <div className="space-y-2 mb-4">
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <Calendar size={16} />
-                                    <span>{new Date(exam.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <Clock size={16} />
-                                    <span>{exam.time}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-purple-500 font-medium">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                    <span>{exam.course || exam.class}</span>
-                                </div>
-                            </div>
-                        </div>
+                {/* Filters View */}
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
+                    {['All Exams', 'Upcoming', 'Completed'].map((filter, i) => (
+                        <button 
+                            key={filter}
+                            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all
+                            ${i === 0 
+                                ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25' 
+                                : 'bg-transparent border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-primary/50 hover:text-primary'}`}
+                        >
+                            {filter}
+                        </button>
                     ))}
                 </div>
 
-                {isCreateModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div className={`w-full max-w-md p-6 rounded-2xl shadow-xl ${isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white'}`}>
-                            <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Schedule New Exam</h2>
-                            <form onSubmit={handleCreateExam} className="space-y-4">
-                                <div>
-                                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Exam Title</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className={`w-full p-2 rounded border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
-                                        placeholder="e.g., Midterm Database Management"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Date</label>
-                                        <input required type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className={`w-full p-2 rounded border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`} />
-                                    </div>
-                                    <div>
-                                        <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Time</label>
-                                        <input required type="time" value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} className={`w-full p-2 rounded border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`} />
-                                    </div>
+                {/* Exam Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <AnimatePresence>
+                        {isLoading ? (
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="h-64 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                            ))
+                        ) : exams.length === 0 ? (
+                            <div className="col-span-full py-32 text-center space-y-6">
+                                <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-[2.5rem] flex items-center justify-center mx-auto mb-4">
+                                    <Calendar size={40} className="text-slate-300 dark:text-slate-600" />
                                 </div>
                                 <div>
-                                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Course</label>
-                                    <select value={formData.course} onChange={(e) => setFormData({ ...formData, course: e.target.value })} className={`w-full p-2 rounded border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}>
-                                        <option value="BCA">BCA</option>
-                                        <option value="BBA">BBA</option>
-                                        <option value="MBA">MBA</option>
-                                        <option value="MBA (HR)">MBA (HR)</option>
-                                        <option value="MBA (Finance)">MBA (Finance)</option>
-                                        <option value="MCA">MCA</option>
-                                        <option value="BSc IT">BSc IT</option>
-                                    </select>
+                                    <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>No Exams Found</h3>
+                                    <p className="text-slate-500 font-bold mt-1">No examinations scheduled at the moment.</p>
                                 </div>
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCreateModalOpen(false)}
-                                        className={`px-4 py-2 rounded text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'}`}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded text-sm font-medium hover:bg-purple-700">
-                                        Schedule
+                            </div>
+                        ) : exams.map((exam, i) => (
+                            <motion.div
+                                key={exam._id || exam.id}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.1 }}
+                                className={`rounded-[2.5rem] border p-8 transition-all duration-500 glass-card group
+                                    ${isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50 hover:shadow-primary/10'}`}
+                            >
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className={`p-4 rounded-2xl ${isDarkMode ? 'bg-primary/20' : 'bg-primary/5'}`}>
+                                        <ShieldCheck size={24} className="text-primary" />
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
+                                        ${new Date(exam.date) >= new Date() ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                                        {new Date(exam.date) >= new Date() ? 'Upcoming' : 'Completed'}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className={`text-xl font-black tracking-tight leading-tight ${isDarkMode ? 'text-white' : 'text-slate-900 group-hover:text-primary transition-colors'}`}>
+                                        {exam.title}
+                                    </h3>
+                                    
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 font-bold text-sm">
+                                            <Calendar size={16} className="text-primary" />
+                                            {new Date(exam.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                                        </div>
+                                        <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 font-bold text-sm">
+                                            <Clock size={16} className="text-primary" />
+                                            {exam.time}
+                                        </div>
+                                        <div className="pt-4 flex items-center gap-2">
+                                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                                                Class: {exam.course || exam.class}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+
+                {/* Create Exam Modal */}
+                <AnimatePresence>
+                    {isCreateModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className={`w-full max-w-lg rounded-[3rem] border overflow-hidden
+                                    ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white shadow-2xl' : 'bg-white border-slate-100 text-slate-900 shadow-2xl shadow-slate-950/20'}`}
+                            >
+                                <div className={`px-10 py-8 border-b flex items-center justify-between
+                                    ${isDarkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-50 bg-slate-50/50'}`}>
+                                    <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 text-primary rounded-xl">
+                                            <Plus size={18} />
+                                        </div>
+                                        Schedule New Exam
+                                    </h2>
+                                    <button onClick={() => setIsCreateModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+                                        <X size={20} />
                                     </button>
                                 </div>
-                            </form>
+
+                                <form onSubmit={handleCreateExam} className="p-10 space-y-8">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Exam Title</label>
+                                        <input
+                                            required
+                                            value={formData.title}
+                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            className={inputCls}
+                                            placeholder="e.g. Mid-Term Examination"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Date</label>
+                                            <input required type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className={inputCls} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Time</label>
+                                            <input required type="time" value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} className={inputCls} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Course / Class</label>
+                                        <select value={formData.course} onChange={(e) => setFormData({ ...formData, course: e.target.value })} className={inputCls}>
+                                            <option value="BCA">Bachelor of Comp. Apps (BCA)</option>
+                                            <option value="BBA">Bachelor of Bus. Admin (BBA)</option>
+                                            <option value="MBA">Master of Bus. Admin (MBA)</option>
+                                            <option value="MCA">Master of Comp. Apps (MCA)</option>
+                                            <option value="BSc IT">Bachelor of Science IT</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={`flex gap-4 pt-4`}>
+                                        <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)} className="flex-1">Discard</Button>
+                                        <Button type="submit" className="flex-1">Schedule Exam</Button>
+                                    </div>
+                                </form>
+                            </motion.div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </AnimatePresence>
             </div>
         </Layout>
     );
 };
+

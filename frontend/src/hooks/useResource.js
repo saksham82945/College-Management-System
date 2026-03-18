@@ -9,7 +9,13 @@ export const useResource = ({ endpoint, autoFetch = true, page = 1, pageSize = 2
         setLoading(true);
         try {
             const response = await apiClient.get(`${endpoint}?page=${page}&size=${pageSize}`);
-            setData(response.data.data[endpoint.substring(1)] || response.data.data || []);
+            const rawData = response.data.data;
+            // Backend can return array directly OR nested under a key (e.g. { students: [...] })
+            const key = endpoint.replace(/^\//, ''); // strip leading slash
+            const extracted = Array.isArray(rawData)
+                ? rawData
+                : (Array.isArray(rawData?.[key]) ? rawData[key] : []);
+            setData(extracted);
             setTotal(response.data.data.total || 0);
         }
         catch (error) {

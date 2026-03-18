@@ -1,0 +1,53 @@
+graph LR
+    User["<b>USER Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>email: String<br/>password: String<br/>name: String<br/>role: String<br/>createdAt: Date"]
+    
+    Student["<b>STUDENT Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>userId: FK<br/>rollNumber: String<br/>section: String<br/>cgpa: Number<br/>enrollmentDate: Date"]
+    
+    Teacher["<b>TEACHER Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>userId: FK<br/>employeeId: String<br/>department: String<br/>specialization: String"]
+    
+    Class["<b>CLASS Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>className: String<br/>capacity: Number<br/>teacherId: FK<br/>section: String"]
+    
+    Subject["<b>SUBJECT Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>subjectName: String<br/>credits: Number<br/>code: String"]
+    
+    Attendance["<b>ATTENDANCE Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>studentId: FK<br/>classId: FK<br/>date: Date<br/>status: String"]
+    
+    Exam["<b>EXAM Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>subjectId: FK<br/>teacherId: FK<br/>examDate: Date<br/>type: String"]
+    
+    Project["<b>PROJECT Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>studentId: FK<br/>examId: FK<br/>title: String<br/>status: String"]
+    
+    Payment["<b>PAYMENT Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>studentId: FK<br/>amount: Number<br/>paymentDate: Date<br/>status: String"]
+    
+    Receipt["<b>RECEIPT Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>paymentId: FK<br/>receiptNumber: String<br/>issueDate: Date"]
+    
+    Salary["<b>SALARY Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>staffId: FK<br/>baseSalary: Number<br/>salaryMonth: Date"]
+    
+    Timetable["<b>TIMETABLE Collection</b><br/>━━━━━━━━━━━<br/>_id: ObjectId<br/>classId: FK<br/>day: String<br/>time: String<br/>subjectId: FK"]
+    
+    User -->|1| Student
+    User -->|1| Teacher
+    Student -->|M| Attendance
+    Student -->|M| Payment
+    Student -->|M| Project
+    Teacher -->|1| Class
+    Teacher -->|M| Exam
+    Class -->|M| Subject
+    Class -->|M| Attendance
+    Class -->|M| Timetable
+    Subject -->|M| Exam
+    Subject -->|M| Timetable
+    Exam -->|1| Project
+    Payment -->|1| Receipt
+    Salary -->|1| Receipt
+    
+    style User fill:#FF6B6B,stroke:#CC0000,color:#fff,stroke-width:2px
+    style Student fill:#4ECDC4,stroke:#0B9A9A,color:#fff,stroke-width:2px
+    style Teacher fill:#45B7D1,stroke:#0084B0,color:#fff,stroke-width:2px
+    style Class fill:#96CEB4,stroke:#5FA081,color:#fff,stroke-width:2px
+    style Subject fill:#FFEAA7,stroke:#CCAA00,stroke-width:2px
+    style Attendance fill:#DDA15E,stroke:#AA6633,color:#fff,stroke-width:2px
+    style Exam fill:#BC6C25,stroke:#8B3E00,color:#fff,stroke-width:2px
+    style Project fill:#E8B4B8,stroke:#AA6666,stroke-width:2px
+    style Payment fill:#A8D8EA,stroke:#5FA6C8,color:#fff,stroke-width:2px
+    style Receipt fill:#AA96DA,stroke:#6666AA,color:#fff,stroke-width:2px
+    style Salary fill:#FCBAD3,stroke:#AA6699,stroke-width:2px
+    style Timetable fill:#FFFACD,stroke:#CCCC00,stroke-width:2px

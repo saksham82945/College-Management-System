@@ -1,7 +1,8 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
 // Lazy load the ProtectedRoute
-const ProtectedRoute = React.lazy(() => import('@/components/ProtectedRoute').then(module => ({ default: module.ProtectedRoute })));
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 // Lazy load pages for code splitting
 const LandingPage = React.lazy(() => import('@/pages/LandingPage').then(m => ({ default: m.LandingPage })));
 const LoginPage = React.lazy(() => import('@/pages/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -12,6 +13,7 @@ const StudentDetailsPage = React.lazy(() => import('@/pages/StudentDetailsPage')
 const TeachersPage = React.lazy(() => import('@/pages/TeachersPage').then(m => ({ default: m.TeachersPage })));
 const AddTeacherPage = React.lazy(() => import('@/pages/AddTeacherPage').then(m => ({ default: m.AddTeacherPage })));
 const FeesPage = React.lazy(() => import('@/pages/FeesPage').then(m => ({ default: m.FeesPage })));
+const ResetPasswordPage = React.lazy(() => import('@/pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 
 const ExamsPage = React.lazy(() => import('@/pages/ExamsPage').then(m => ({ default: m.ExamsPage })));
 const StaffPage = React.lazy(() => import('@/pages/StaffPage').then(m => ({ default: m.StaffPage })));
@@ -34,13 +36,14 @@ export const routes = [
     { path: '/', element: <LandingPage /> },
     { path: '/login', element: <LoginPage /> },
     { path: '/signup', element: <SignupPage /> },
+    { path: '/reset-password', element: <ResetPasswordPage /> },
     // Protected routes
     { path: '/dashboard', element: protect(<Dashboard />) },
     { path: '/student-dashboard', element: protect(<StudentDashboard />, ['STUDENT']) },
     { path: '/teacher-dashboard', element: protect(<TeacherDashboard />, ['TEACHER']) },
     // Students
     { path: '/students', element: protect(<StudentsPage />, ['ADMIN', 'TEACHER']) },
-    { path: '/students/add', element: protect(<AddStudentPage />, ['ADMIN']) },
+    { path: '/students/add', element: protect(<AddStudentPage />, ['ADMIN', 'TEACHER']) },
     { path: '/students/:id', element: protect(<StudentDetailsPage />, ['ADMIN']) },
     // Teachers
     { path: '/teachers', element: protect(<TeachersPage />, ['ADMIN']) },
@@ -64,6 +67,16 @@ export const routes = [
     // Projects
     { path: '/projects/dashboard', element: protect(<ProjectDashboard />, ['ADMIN']) },
     { path: '/settings', element: protect(<SettingsPage />, ['ADMIN']) },
-    // Fallback
-    { path: '*', element: <Navigate to="/dashboard" replace /> }
+    // Smart fallback — redirect based on user role
+    { path: '*', element: <RoleRedirect /> }
 ];
+
+// Role-aware redirect component
+function RoleRedirect() {
+    const { user } = useAuthStore();
+    if (!user) return <Navigate to="/login" replace />;
+    const roles = user.roles || [];
+    if (roles.includes('STUDENT')) return <Navigate to="/student-dashboard" replace />;
+    if (roles.includes('TEACHER')) return <Navigate to="/teacher-dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
+}

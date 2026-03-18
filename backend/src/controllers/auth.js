@@ -9,9 +9,10 @@ const errors_1 = require("../utils/errors");
 const authRegister = async (req, res) => {
     try {
         const { email, password, fullName, phone, roleName = 'ADMIN' } = req.body;
-        // Disallow registration of non-ADMIN roles if explicitly requested
-        if (roleName !== 'ADMIN') {
-            throw new errors_1.AppError('Only Administrator registration is allowed', 403, 'ROLE_RESTRICTED');
+        // Disallow registration of unrecognized roles
+        const allowedRoles = ['ADMIN', 'STUDENT'];
+        if (!allowedRoles.includes(roleName)) {
+            throw new errors_1.AppError('Only Administrator and Student registrations are allowed', 403, 'ROLE_RESTRICTED');
         }
         // Validate email format
         const emailRegex = /^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

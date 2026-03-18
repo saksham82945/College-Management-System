@@ -1,5 +1,5 @@
 export const schedules = {
-    'BCA-1': [
+    'BCA-1-sem1': [
         { day: 'Monday', time: '09:00 AM', subject: 'Programming in C', teacher: 'Dr. Rajesh Kumar', room: 'Lab 101' },
         { day: 'Monday', time: '11:00 AM', subject: 'Mathematics-I', teacher: 'Prof. Anita Sharma', room: 'Room 201' },
         { day: 'Tuesday', time: '10:00 AM', subject: 'Digital Electronics', teacher: 'Mr. Suresh Patel', room: 'Lab 102' },
@@ -11,6 +11,19 @@ export const schedules = {
         { day: 'Friday', time: '09:00 AM', subject: 'Digital Electronics Lab', teacher: 'Mr. Suresh Patel', room: 'Lab 102' },
         { day: 'Friday', time: '11:00 AM', subject: 'Computer Fundamentals', teacher: 'Dr. Vikram Mehta', room: 'Room 301' },
         { day: 'Saturday', time: '09:00 AM', subject: 'Programming Workshop', teacher: 'Dr. Rajesh Kumar', room: 'Lab 101' },
+    ],
+    'BCA-1-sem2': [
+        { day: 'Monday', time: '09:00 AM', subject: 'Data Structures using C', teacher: 'Dr. Vikram Mehta', room: 'Lab 103' },
+        { day: 'Monday', time: '11:00 AM', subject: 'Mathematics-II', teacher: 'Prof. Anita Sharma', room: 'Room 201' },
+        { day: 'Tuesday', time: '10:00 AM', subject: 'Computer Architecture', teacher: 'Dr. Rajesh Kumar', room: 'Room 202' },
+        { day: 'Tuesday', time: '02:00 PM', subject: 'Business Communication', teacher: 'Ms. Priya Singh', room: 'Room 205' },
+        { day: 'Wednesday', time: '09:00 AM', subject: 'Discrete Mathematics', teacher: 'Dr. Kavita Desai', room: 'Room 301' },
+        { day: 'Wednesday', time: '11:00 AM', subject: 'Data Structures Lab', teacher: 'Dr. Vikram Mehta', room: 'Lab 103' },
+        { day: 'Thursday', time: '10:00 AM', subject: 'Mathematics-II', teacher: 'Prof. Anita Sharma', room: 'Room 201' },
+        { day: 'Thursday', time: '02:00 PM', subject: 'Value Education', teacher: 'Mr. Suresh Patel', room: 'Room 105' },
+        { day: 'Friday', time: '09:00 AM', subject: 'Architecture Lab', teacher: 'Dr. Rajesh Kumar', room: 'Lab 102' },
+        { day: 'Friday', time: '11:00 AM', subject: 'Discrete Mathematics', teacher: 'Dr. Kavita Desai', room: 'Room 301' },
+        { day: 'Saturday', time: '09:00 AM', subject: 'Soft Skills Training', teacher: 'Ms. Priya Singh', room: 'Room 205' },
     ],
     'BCA-2': [
         { day: 'Monday', time: '09:00 AM', subject: 'Programming in C', teacher: 'Dr. Rajesh Kumar', room: 'Lab 101' },

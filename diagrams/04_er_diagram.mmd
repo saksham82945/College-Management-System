@@ -1,0 +1,188 @@
+erDiagram
+    USER ||--o{ STUDENT : "becomes"
+    USER ||--o{ TEACHER : "becomes"
+    USER ||--o{ STAFF : "becomes"
+    USER ||--o{ ADMIN : "becomes"
+    
+    STUDENT ||--o{ ATTENDANCE : "has"
+    STUDENT ||--o{ PAYMENT : "makes"
+    STUDENT ||--o{ STUDENTFEE : "owes"
+    STUDENT ||--o{ PROJECT : "submits"
+    STUDENT ||--o{ COURSE : "enrolls_in"
+    STUDENT }o--|| PARENT : "has"
+    
+    TEACHER ||--o{ COURSE : "teaches"
+    TEACHER ||--o{ SUBJECT : "specializes_in"
+    TEACHER ||--o{ EXAM : "conducts"
+    TEACHER ||--o{ SALARY : "earns"
+    
+    COURSE ||--o{ SUBJECT : "contains"
+    COURSE ||--o{ TIMETABLE : "has"
+    COURSE ||--o{ ATTENDANCE : "takes"
+    
+    EXAM ||--o{ SUBJECT : "for_subject"
+    EXAM ||--o{ PROJECT : "part_of"
+    
+    SUBJECT ||--o{ STUDENTFEE : "charged_for"
+    
+    PAYMENT ||--o{ RECEIPT : "generates"
+    STUDENTFEE ||--o{ RECEIPT : "paid_by"
+    
+    STAFF ||--o{ SALARY : "earns"
+    SALARY ||--o{ SALARYCOMPONENT : "includes"
+    SALARY ||--o{ SALARYPAYMENT : "records"
+    
+    ROLE ||--o{ USER : "assigned_to"
+    NOTIFICATION ||--o{ USER : "sent_to"
+    
+    USER {
+        ObjectId _id PK
+        string email UK
+        string password
+        string name
+        enum role
+        timestamp createdAt
+    }
+    
+    STUDENT {
+        ObjectId _id PK
+        ObjectId userId FK
+        string rollNumber UK
+        string section
+        float cgpa
+        timestamp enrollmentDate
+    }
+    
+    TEACHER {
+        ObjectId _id PK
+        ObjectId userId FK
+        string employeeId UK
+        string department
+        string specialization
+        timestamp joinDate
+    }
+    
+    COURSE {
+        ObjectId _id PK
+        string className UK
+        int capacity
+        ObjectId teacherId FK
+        string section
+    }
+    
+    SUBJECT {
+        ObjectId _id PK
+        string subjectName UK
+        int credits
+        string code UK
+    }
+    
+    ATTENDANCE {
+        ObjectId _id PK
+        ObjectId studentId FK
+        ObjectId courseId FK
+        date date
+        enum status
+    }
+    
+    EXAM {
+        ObjectId _id PK
+        ObjectId subjectId FK
+        ObjectId teacherId FK
+        date examDate
+        string type
+    }
+    
+    PROJECT {
+        ObjectId _id PK
+        ObjectId studentId FK
+        ObjectId examId FK
+        string title
+        string status
+        date submissionDate
+    }
+    
+    PAYMENT {
+        ObjectId _id PK
+        ObjectId studentId FK
+        float amount
+        date paymentDate
+        enum status
+    }
+    
+    RECEIPT {
+        ObjectId _id PK
+        ObjectId paymentId FK
+        ObjectId studentFeeId FK
+        string receiptNumber UK
+        date issueDate
+    }
+    
+    PARENT {
+        ObjectId _id PK
+        ObjectId studentId FK
+        string name
+        string phone
+        string relation
+    }
+    
+    STAFF {
+        ObjectId _id PK
+        ObjectId userId FK
+        string employeeId UK
+        string department
+        string designation
+    }
+    
+    SALARY {
+        ObjectId _id PK
+        ObjectId staffId FK
+        ObjectId teacherId FK
+        float baseSalary
+        date salaryMonth
+    }
+    
+    SALARYCOMPONENT {
+        ObjectId _id PK
+        ObjectId salaryId FK
+        string component
+        float amount
+    }
+    
+    SALARYPAYMENT {
+        ObjectId _id PK
+        ObjectId salaryId FK
+        float paidAmount
+        date paymentDate
+        enum status
+    }
+    
+    STUDENTFEE {
+        ObjectId _id PK
+        ObjectId studentId FK
+        ObjectId subjectId FK
+        float feeAmount
+        enum status
+    }
+    
+    TIMETABLE {
+        ObjectId _id PK
+        ObjectId courseId FK
+        string day
+        string time
+        ObjectId subjectId FK
+    }
+    
+    ROLE {
+        ObjectId _id PK
+        string roleName UK
+        string permissions
+    }
+    
+    NOTIFICATION {
+        ObjectId _id PK
+        ObjectId userId FK
+        string title
+        string message
+        timestamp createdAt
+    }

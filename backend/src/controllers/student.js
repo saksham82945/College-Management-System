@@ -38,6 +38,7 @@ const Student_1 = require("../models/Student");
 const User_1 = require("../models/User");
 const password_1 = require("../utils/password");
 const errors_1 = require("../utils/errors");
+const StudentFee_1 = require("../models/StudentFee");
 const getAllStudents = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -45,7 +46,7 @@ const getAllStudents = async (req, res) => {
         const course = req.query.course;
         const status = req.query.status;
         const skip = (page - 1) * size;
-        const filter = {};
+        const filter = { status: { $ne: 'inactive' } };
         if (course)
             filter.course = course;
         if (status)
@@ -317,15 +318,28 @@ exports.promoteStudent = promoteStudent;
 const getStudentFullProfile = async (req, res) => {
     try {
         const { id } = req.params;
+        console.log(`[DEBUG] Fetching full profile for student ID: ${id}`);
+        
+        if (!id || id === 'undefined' || id === '[object Object]') {
+            console.error(`[ERROR] Invalid student ID provided: ${id}`);
+            return res.status(400).json({ success: false, message: 'Invalid student ID' });
+        }
+
         const student = await Student_1.Student.findById(id)
             .populate('userId', '-password')
             .populate('parentId')
             .lean();
+
         if (!student) {
-            throw new errors_1.AppError('Student not found', 404, 'STUDENT_NOT_FOUND');
+            console.warn(`[WARN] Student not found with ID: ${id}`);
+            return res.status(404).json({ success: false, message: 'Student not found' });
         }
+
+        console.log(`[DEBUG] Found student: ${student.userId?.fullName || 'N/A'}`);
+
         // Fetch related data
-        const fees = await Promise.resolve().then(() => __importStar(require('../models/StudentFee.js'))).then(m => m.StudentFee.find({ studentId: id }).populate('feeTypeId'));
+        const fees = await StudentFee_1.StudentFee.find({ studentId: id }).populate('feeTypeId');
+        
         res.json({
             success: true,
             data: {
@@ -333,15 +347,15 @@ const getStudentFullProfile = async (req, res) => {
                 stats: {
                     attendancePercentage: 0,
                     totalAttendance: 0,
-                    pendingFees: 0, // Calculate from fees
+                    pendingFees: 0,
                 },
-                financials: fees
+                financials: fees || []
             }
         });
     }
     catch (error) {
-        console.error('Profile Error', error);
-        res.status(500).json({ message: 'Failed to fetch full profile' });
+        console.error('Profile Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch full student profile' });
     }
 };
 exports.getStudentFullProfile = getStudentFullProfile;

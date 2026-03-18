@@ -19,18 +19,18 @@ export const SettingsPage = () => {
     };
     return (<Layout>
             <div className="max-w-4xl mx-auto">
-                <h1 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Settings & Preferences</h1>
+                <h1 className={`text-2xl font-bold mb-6 tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Settings</h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Sidebar / Navigation (Visual) */}
                     <div className="space-y-2">
-                        <div className={`p-3 rounded-xl font-medium cursor-pointer ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-purple-50 text-purple-700'}`}>
-                            General Profile
+                        <div className={`p-4 rounded-xl font-black text-[10px] uppercase tracking-widest cursor-pointer ${isDarkMode ? 'bg-gray-800 text-primary-light' : 'bg-indigo-50 text-primary'}`}>
+                            Profile
                         </div>
-                        <div className={`p-3 rounded-xl font-medium cursor-pointer text-gray-500 hover:bg-gray-50 ${isDarkMode ? 'hover:bg-gray-800 hover:text-gray-300' : ''}`}>
+                        <div className={`p-4 rounded-xl font-black text-[10px] uppercase tracking-widest cursor-pointer text-gray-500 hover:bg-gray-50 ${isDarkMode ? 'hover:bg-gray-800 hover:text-gray-300' : ''}`}>
                             Security
                         </div>
-                        <div className={`p-3 rounded-xl font-medium cursor-pointer text-gray-500 hover:bg-gray-50 ${isDarkMode ? 'hover:bg-gray-800 hover:text-gray-300' : ''}`}>
+                        <div className={`p-4 rounded-xl font-black text-[10px] uppercase tracking-widest cursor-pointer text-gray-500 hover:bg-gray-50 ${isDarkMode ? 'hover:bg-gray-800 hover:text-gray-300' : ''}`}>
                             Notifications
                         </div>
                     </div>
@@ -39,83 +39,82 @@ export const SettingsPage = () => {
                     <div className="md:col-span-2 space-y-6">
 
                         {/* Profile Section */}
-                        <div className={`p-6 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'}`}>
-                            <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Personal Information</h2>
-                            <form onSubmit={handleSave} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                        <div className={`p-8 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'}`}>
+                            <h2 className={`text-lg font-black tracking-tight mb-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Profile Details</h2>
+                            <form onSubmit={handleSave} className="space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
-                                        <input value={profile.fullName} onChange={e => setProfile({ ...profile, fullName: e.target.value })} className={`w-full p-2 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-200'}`}/>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
+                                        <input value={profile.fullName} onChange={e => setProfile({ ...profile, fullName: e.target.value })} className={`w-full p-2.5 rounded-lg border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-200'}`}/>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500 mb-1">Phone</label>
-                                        <input value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} className={`w-full p-2 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-200'}`}/>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Phone</label>
+                                        <input value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} className={`w-full p-2.5 rounded-lg border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-200'}`}/>
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
                                     <input disabled value={profile.email} // Fixed: was user?.email
-     className={`w-full p-2 rounded-lg border opacity-70 cursor-not-allowed ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200'}`}/>
-                                    <p className="text-xs text-gray-400 mt-1">Contact admin to change email</p>
+                                        className={`w-full p-2.5 rounded-lg border opacity-60 cursor-not-allowed ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200'}`}/>
+                                    <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-wide italic">Contact administration to update email address</p>
                                 </div>
 
                                 <div className="pt-4 flex justify-end">
-                                    <button type="submit" className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                        <Save size={18}/> Save Changes
+                                    <button type="submit" className="flex items-center gap-2 px-8 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary-dark transition-all active:scale-95 shadow-lg shadow-primary/20">
+                                        <Save size={16}/> Save Changes
                                     </button>
                                 </div>
                             </form>
                         </div>
 
                         {/* Preferences Section */}
-                        <div className={`p-6 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'}`}>
-                            <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>System Preferences</h2>
+                        <div className={`p-8 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'}`}>
+                            <h2 className={`text-lg font-black tracking-tight mb-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Preferences</h2>
 
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-purple-50 text-purple-600'}`}>
+                                <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-indigo-50 text-indigo-600'}`}>
                                             {isDarkMode ? <Moon size={20}/> : <Sun size={20}/>}
                                         </div>
                                         <div>
-                                            <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Dark Mode</p>
-                                            <p className="text-xs text-gray-500">Toggle system theme</p>
+                                            <p className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Interface Theme</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dark mode toggle</p>
                                         </div>
                                     </div>
-                                    <button onClick={toggleTheme} className={`w-12 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-purple-600' : 'bg-gray-200'}`}>
+                                    <button onClick={toggleTheme} className={`w-12 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-primary' : 'bg-gray-200'}`}>
                                         <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isDarkMode ? 'translate-x-6' : 'translate-x-0'}`}/>
                                     </button>
                                 </div>
 
-                                <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-blue-50 text-blue-600'}`}>
+                                <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-emerald-50 text-emerald-600'}`}>
                                             <Bell size={20}/>
                                         </div>
                                         <div>
-                                            <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Email Notifications</p>
-                                            <p className="text-xs text-gray-500">Receive weekly digests</p>
+                                            <p className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Communication</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Receive institutional updates</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setNotifications(!notifications)} className={`w-12 h-6 rounded-full p-1 transition-colors ${notifications ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                    <button onClick={() => setNotifications(!notifications)} className={`w-12 h-6 rounded-full p-1 transition-colors ${notifications ? 'bg-emerald-500' : 'bg-gray-200'}`}>
                                         <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${notifications ? 'translate-x-6' : 'translate-x-0'}`}/>
                                     </button>
                                 </div>
 
-                                <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-orange-50 text-orange-600'}`}>
+                                <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-amber-50 text-amber-600'}`}>
                                             <Globe size={20}/>
                                         </div>
                                         <div>
-                                            <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Language</p>
-                                            <p className="text-xs text-gray-500">System display language</p>
+                                            <p className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Language</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">System display language</p>
                                         </div>
                                     </div>
-                                    <select className={`text-sm border-none bg-transparent font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <select className={`text-xs font-black uppercase tracking-widest border-none bg-transparent outline-none cursor-pointer ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                         <option>English</option>
                                         <option>Hindi</option>
-                                        <option>Spanish</option>
                                     </select>
                                 </div>
                             </div>

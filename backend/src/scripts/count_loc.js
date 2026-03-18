@@ -5,9 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+// Dynamically resolve paths relative to this script: scripts/ -> src/ -> backend/ -> College Management/
+const projectRoot = path_1.default.resolve(__dirname, '../../..');
 const rootDirs = [
-    'e:/Desktop/College Management/backend/src',
-    'e:/Desktop/College Management/frontend/src'
+    path_1.default.join(projectRoot, 'backend', 'src'),
+    path_1.default.join(projectRoot, 'frontend', 'src')
 ];
 const extensions = ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'];
 let totalLines = 0;

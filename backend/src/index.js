@@ -22,13 +22,17 @@ const project_1 = __importDefault(require("./routes/project"));
 const attendance_1 = __importDefault(require("./routes/attendance"));
 const notification_1 = __importDefault(require("./routes/notification"));
 const exams_1 = __importDefault(require("./routes/exams"));
+const report_1 = __importDefault(require("./routes/report"));
 const app = (0, express_1.default)();
 // Security middleware
 app.use((0, helmet_1.default)());
-// Rate limiting
+// Rate limiting — skip preflight OPTIONS requests, generous in dev
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: process.env.NODE_ENV === 'production' ? 100 : 500,
+    skip: (req) => req.method === 'OPTIONS', // Don't count CORS preflight
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 if (process.env.NODE_ENV !== 'test') {
     app.use(limiter);
@@ -79,6 +83,7 @@ app.use('/api/v1/projects', project_1.default);
 app.use('/api/v1/attendance', attendance_1.default);
 app.use('/api/v1/notifications', notification_1.default);
 app.use('/api/v1/exams', exams_1.default);
+app.use('/api/v1/reports', report_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });

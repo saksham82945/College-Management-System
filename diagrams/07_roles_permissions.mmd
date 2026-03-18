@@ -1,0 +1,33 @@
+graph TB
+    Admin["👨‍💼 ADMIN<br/>━━━━━━━━━━━<br/>✓ Full System Access<br/>✓ User Management<br/>✓ Role Assignment<br/>✓ System Configuration<br/>✓ Reports & Analytics<br/>✓ Audit Logs"]
+    
+    Teacher["👨‍🏫 TEACHER<br/>━━━━━━━━━━━<br/>✓ Mark Attendance<br/>✓ Upload Grades<br/>✓ Conduct Exams<br/>✓ View Assigned Classes<br/>✓ Access Student Reports<br/>✓ Submit Payroll Info"]
+    
+    Student["👨‍🎓 STUDENT<br/>━━━━━━━━━━━<br/>✓ View Timetable<br/>✓ Check Attendance<br/>✓ View Grades<br/>✓ Pay Fees Online<br/>✓ Submit Projects<br/>✓ Download Certificates"]
+    
+    Parent["👨‍👩‍👧 PARENT<br/>━━━━━━━━━━━<br/>✓ View Child Progress<br/>✓ Check Attendance<br/>✓ View Grades<br/>✓ Pay Fees<br/>✓ Communicate Teacher<br/>✓ Receive Notifications"]
+    
+    Staff["👨‍💼 STAFF<br/>━━━━━━━━━━━<br/>✓ View Payroll<br/>✓ Submit Attendance<br/>✓ Access Dashboard<br/>✓ View Salary Components<br/>✓ Update Profile<br/>✓ View Reports"]
+    
+    System["🔄 CORE SYSTEM"]
+    
+    System -->|User Authentication| Admin
+    System -->|User Authentication| Teacher
+    System -->|User Authentication| Student
+    System -->|User Authentication| Parent
+    System -->|User Authentication| Staff
+    
+    Admin -->|Manages| Teacher
+    Admin -->|Manages| Student
+    Admin -->|Manages| Staff
+    Admin -->|Manages| System
+    
+    Teacher -->|Interacts| Student
+    Student -->|Connected| Parent
+    
+    style Admin fill:#FF6B6B,stroke:#CC0000,stroke-width:2px,color:#fff
+    style Teacher fill:#45B7D1,stroke:#0084B0,stroke-width:2px,color:#fff
+    style Student fill:#4ECDC4,stroke:#0B9A9A,stroke-width:2px,color:#fff
+    style Parent fill:#FFB6C1,stroke:#FF69B4,stroke-width:2px,color:#fff
+    style Staff fill:#DDA15E,stroke:#AA6633,stroke-width:2px,color:#fff
+    style System fill:#96CEB4,stroke:#5FA081,stroke-width:2px,color:#000

@@ -10,7 +10,8 @@
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "test:coverage": "cross-env NODE_ENV=test jest --coverage",
     "lint": "eslint src/**/*.js",
-    "migrate": "node src/scripts/migrate.js"
+    "seed": "node src/scripts/seed.js",
+    "reset-admin": "node src/scripts/reset_admin.js"
   },
   "keywords": [
     "college",
