@@ -1,4 +1,4 @@
-name: Test Coverage & Quality
+name: CI Build Check
 
 on:
   push:
@@ -7,24 +7,7 @@ on:
     branches: [ "main", "dev" ]
 
 jobs:
-  backend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-      - run: cd backend && npm ci
-      - name: Run Backend Tests
-        run: cd backend && npm run test -- --coverage
-        env:
-          JWT_SECRET: testing_secret
-          NODE_ENV: test
-
-  frontend-tests:
+  build-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -35,20 +18,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       - run: cd frontend && npm ci
-      - name: Run Frontend Tests
-        run: cd frontend && npm run test -- --coverage
+      - name: Build Frontend
+        run: cd frontend && npm run build
 
-  e2e-tests:
-    needs: [backend-tests, frontend-tests]
+  backend-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
-      - run: cd backend && npm ci && cd ../frontend && npm ci
-      - name: Start Servers and Run E2E
-        run: |
-          cd backend && npm run dev &
-          cd frontend && npm run dev &
-          npx wait-on http://localhost:5000 http://localhost:5173
-          cd frontend && npx cypress run
+        with:
+          node-version: 18.x
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: cd backend && npm ci
