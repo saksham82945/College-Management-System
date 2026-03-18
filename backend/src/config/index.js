@@ -7,7 +7,7 @@ exports.config = {
     port: process.env.PORT || 5000,
     env: process.env.NODE_ENV || 'development',
     mongodb: {
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/college-management',
+        uri: process.env.MONGODB_URI || 'mongodb+srv://admin:admin82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement',
     },
     jwt: {
         secret: process.env.JWT_SECRET || 'your-secret-key',
