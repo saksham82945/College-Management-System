@@ -7,7 +7,7 @@ exports.deleteTeacher = exports.updateTeacher = exports.getTeacherById = exports
 const User_1 = require("../models/User");
 const Role_1 = require("../models/Role");
 const Teacher_1 = require("../models/Teacher");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const bcryptjs_1 = __importDefault(require("bcrypt"));
 const errors_1 = require("../utils/errors");
 const createTeacher = async (req, res) => {
     // Transaction removed for standalone support

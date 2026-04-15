@@ -8,7 +8,7 @@ exports.deleteStaff = exports.updateStaff = exports.getStaffById = exports.getAl
 const User_1 = require("../models/User");
 const Role_1 = require("../models/Role");
 const Staff_1 = require("../models/Staff");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const bcryptjs_1 = __importDefault(require("bcrypt"));
 const errors_1 = require("../utils/errors");
 
 const createStaff = async (req, res) => {

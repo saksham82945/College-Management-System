@@ -6,12 +6,21 @@ export const apiClient = axios.create({
         'Content-Type': 'application/json',
     },
 });
-// Add token to requests
+// Add token and cache busting to requests
 apiClient.interceptors.request.use((config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Prevent browser caching for GET requests to ensure real-time updates
+    if (config.method === 'get') {
+        config.params = {
+            ...config.params,
+            _t: Date.now()
+        };
+    }
+    
     return config;
 });
 // Handle token refresh on 401

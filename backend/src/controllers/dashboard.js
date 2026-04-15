@@ -4,7 +4,7 @@ exports.getStudentDashboardStats = exports.getTeacherDashboardStats = exports.ge
 const Student_1 = require("../models/Student");
 const Teacher_1 = require("../models/Teacher");
 const Payment_1 = require("../models/Payment");
-const Attendance_1 = require("../models/Attendance");
+const Attendance_Model = require("../models/Attendance");
 
 const getAdminDashboardStats = async (req, res) => {
     try {
@@ -34,9 +34,10 @@ const getAdminDashboardStats = async (req, res) => {
             .populate('userId', 'fullName email')
             .lean();
 
-        const totalRecords = await Attendance_1.countDocuments();
-        const presentRecords = await Attendance_1.countDocuments({ status: 'present' });
-        const absentRecords = await Attendance_1.countDocuments({ status: 'absent' });
+        const Attendance = Attendance_Model.default || Attendance_Model;
+        const totalRecords = await Attendance.countDocuments().catch(() => 0);
+        const presentRecords = await Attendance.countDocuments({ status: 'PRESENT' }).catch(() => 0);
+        const absentRecords = await Attendance.countDocuments({ status: 'ABSENT' }).catch(() => 0);
 
         res.status(200).json({
             success: true,
@@ -75,14 +76,15 @@ const getTeacherDashboardStats = async (req, res) => {
             .populate('userId', 'fullName email')
             .lean();
 
-        const recentAttendance = await Attendance_1.find({ markedBy: userId })
+        const Attendance = Attendance_Model.default || Attendance_Model;
+        const recentAttendance = await Attendance.find({ markedBy: userId })
             .sort({ date: -1 })
             .limit(10)
             .populate('student', 'rollNo course semester')
             .lean();
 
-        const totalMarked = await Attendance_1.countDocuments({ markedBy: userId });
-        const presentMarked = await Attendance_1.countDocuments({ markedBy: userId, status: 'present' });
+        const totalMarked = await Attendance.countDocuments({ markedBy: userId }).catch(() => 0);
+        const presentMarked = await Attendance.countDocuments({ markedBy: userId, status: 'PRESENT' }).catch(() => 0);
 
         res.status(200).json({
             success: true,
@@ -137,8 +139,9 @@ const getStudentDashboardStats = async (req, res) => {
             });
         }
 
-        const totalAttendance = await Attendance_1.countDocuments({ student: student._id });
-        const presentAttendance = await Attendance_1.countDocuments({ student: student._id, status: 'present' });
+        const Attendance = Attendance_Model.default || Attendance_Model;
+        const totalAttendance = await Attendance.countDocuments({ student: student._id }).catch(() => 0);
+        const presentAttendance = await Attendance.countDocuments({ student: student._id, status: 'PRESENT' }).catch(() => 0);
 
         let feesPaid = 0;
         try {

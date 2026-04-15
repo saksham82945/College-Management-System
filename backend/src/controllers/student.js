@@ -267,9 +267,24 @@ const deleteStudent = async (req, res) => {
         if (!student) {
             throw new errors_1.AppError('Student not found', 404, 'STUDENT_NOT_FOUND');
         }
-        // Soft delete
-        student.status = 'inactive';
-        await student.save();
+        
+        // Delete the associated user account
+        if (student.userId) {
+            await User_1.User.findByIdAndDelete(student.userId);
+        }
+        
+        // Remove student reference from parent if parent exists
+        if (student.parentId) {
+            await Promise.resolve().then(() => __importStar(require('../models/Parent.js'))).then(m =>
+                m.Parent.findByIdAndUpdate(student.parentId, {
+                    $pull: { children: student._id }
+                }).catch(err => console.error('Parent update error:', err))
+            );
+        }
+        
+        // Hard delete the student record
+        await Student_1.Student.findByIdAndDelete(id);
+        
         res.json({ message: 'Student deleted successfully' });
     }
     catch (error) {
