@@ -7,7 +7,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const User_1 = require("../models/User");
 const Role_1 = require("../models/Role");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const bcryptjs_1 = __importDefault(require("bcrypt"));
 dotenv_1.default.config();
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/college-management';
 const resetAdmin = async () => {
