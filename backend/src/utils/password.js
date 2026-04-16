@@ -34,13 +34,13 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.comparePassword = exports.hashPassword = void 0;
-const bcryptjs = __importStar(require("bcryptjs"));
+const bcrypt = __importStar(require("bcrypt"));
 const SALT_ROUNDS = 10;
 const hashPassword = async (password) => {
-    return bcryptjs.hash(password, SALT_ROUNDS);
+    return bcrypt.hash(password, SALT_ROUNDS);
 };
 exports.hashPassword = hashPassword;
 const comparePassword = async (password, hash) => {
-    return bcryptjs.compare(password, hash);
+    return bcrypt.compare(password, hash);
 };
 exports.comparePassword = comparePassword;
