@@ -42,5 +42,7 @@ const attendanceSchema = new mongoose.Schema({
 
 // Compound index to prevent duplicate entries per student per date per subject
 attendanceSchema.index({ student: 1, date: 1, subject: 1 }, { unique: false });
+// Index on status to optimize dashboard global counts
+attendanceSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);

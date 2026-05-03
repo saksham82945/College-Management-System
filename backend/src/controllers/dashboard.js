@@ -35,9 +35,24 @@ const getAdminDashboardStats = async (req, res) => {
             .lean();
 
         const Attendance = Attendance_Model.default || Attendance_Model;
-        const totalRecords = await Attendance.countDocuments().catch(() => 0);
-        const presentRecords = await Attendance.countDocuments({ status: 'PRESENT' }).catch(() => 0);
-        const absentRecords = await Attendance.countDocuments({ status: 'ABSENT' }).catch(() => 0);
+        const [attendanceStats] = await Attendance.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalRecords: { $sum: 1 },
+                    presentRecords: {
+                        $sum: { $cond: [{ $eq: ["$status", "PRESENT"] }, 1, 0] }
+                    },
+                    absentRecords: {
+                        $sum: { $cond: [{ $eq: ["$status", "ABSENT"] }, 1, 0] }
+                    }
+                }
+            }
+        ]).catch(() => [{ totalRecords: 0, presentRecords: 0, absentRecords: 0 }]);
+
+        const totalRecords = attendanceStats?.totalRecords || 0;
+        const presentRecords = attendanceStats?.presentRecords || 0;
+        const absentRecords = attendanceStats?.absentRecords || 0;
 
         res.status(200).json({
             success: true,
@@ -74,6 +89,7 @@ const getTeacherDashboardStats = async (req, res) => {
         const totalStudents = await Student_1.Student.countDocuments();
         const students = await Student_1.Student.find()
             .populate('userId', 'fullName email')
+            .limit(10)
             .lean();
 
         const Attendance = Attendance_Model.default || Attendance_Model;
