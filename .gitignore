@@ -1,54 +1,91 @@
-# Dependencies
+# ─── Node.js ──────────────────────────────────────────────────────────────────
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.npm
+.yarn-integrity
 
-# Build outputs
-dist/
-build/
-*.local
-
-# Environment variables
+# ─── Environment Variables ────────────────────────────────────────────────────
+# Never commit real .env files — use .env.example as the template
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.staging
+backend/.env
+frontend/.env
 
-# IDE
-.vscode/
+# ─── Build Outputs ────────────────────────────────────────────────────────────
+dist/
+build/
+*.local
+.vite/
+.next/
+out/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+backend/logs/
+
+# ─── Uploads & Temp Files ─────────────────────────────────────────────────────
+uploads/
+temp/
+backend/uploads/
+backend/temp/
+
+# ─── Test Coverage ────────────────────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+dump.rdb
+
+# ─── IDE & Editor ─────────────────────────────────────────────────────────────
 .idea/
 *.swp
 *.swo
 *~
+.history/
+*.sublime-project
+*.sublime-workspace
+.editorconfig
 
-# OS
+# Keep .vscode settings if shared with team, exclude personal settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ─── OS Generated Files ───────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Logs
-logs/
-*.log
-
-# Database
-*.db
-*.sqlite
-
-# Uploads
-uploads/
-temp/
-
-# Test coverage
-coverage/
-*.lcov
-
-# Debug and temp files
+# ─── Debug & Temp Script Files ────────────────────────────────────────────────
 debug_output.txt
 books_loc.txt
 loc_stats.txt
 fix_imports.js
+*.bak
+*.tmp
+*.temp
 
-# Old documentation (keeping README.md and docs/)
+# ─── Old / Archived Documentation ────────────────────────────────────────────
+# (keeping README.md, render.yaml, and docs/)
 COMPLETION_SUMMARY.md
 DOCUMENTATION_INDEX.md
 FEATURES_CHECKLIST.md
@@ -56,3 +93,18 @@ PROJECT_SUMMARY.md
 QUICK_START.md
 SETUP_GUIDE.md
 LOGIN_CREDENTIALS.md
+
+# ─── Security Sensitive (never commit) ───────────────────────────────────────
+*.pem
+*.key
+*.cert
+*.csr
+*.pfx
+*.p12
+private/
+secrets/
+
+# ─── Miscellaneous ────────────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+storybook-static/
