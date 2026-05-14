@@ -106,13 +106,7 @@ const getReceipt = async (req, res) => {
     }
 };
 exports.getReceipt = getReceipt;
-// The user provided 'EndLine: 145'. 
-// I will rewrite the file content essentially to just ADD these functions at the end effectively, or I can try to replace the last closing bracket if there is one? No, exports are named.
-// I will use `replace_file_content` targeting the end of the file.
-// Wait, `replace_file_content` replaces a specific text block. I can match the last export and append after it.
-// Let's retry the strategy: Append by replacing the last export method with itself + new methods.
 const getPaymentHistory = async (req, res) => {
-    // ... (existing implementation of getPaymentHistory)
     try {
         const { studentId } = req.params;
         const page = parseInt(req.query.page) || 1;
@@ -145,9 +139,7 @@ const getPaymentHistory = async (req, res) => {
     }
 };
 exports.getPaymentHistory = getPaymentHistory;
-// NEW METHODS
 const createFeeType = async (req, res) => {
-    // ... implementation
     try {
         const { name, amount, frequency, description, isOptional } = req.body;
         const code = name.toUpperCase().replace(/\s+/g, '_') + '_' + new Date().getFullYear();
@@ -177,8 +169,6 @@ const getAllFeeTypes = async (req, res) => {
 };
 exports.getAllFeeTypes = getAllFeeTypes;
 const assignFeeToClass = async (req, res) => {
-    // const session = await import('mongoose').then(m => m.default.startSession());
-    // session.startTransaction();
     try {
         const { classId, feeTypeId, dueDate } = req.body;
         const feeType = await FeeType_1.FeeType.findById(feeTypeId);
@@ -195,16 +185,12 @@ const assignFeeToClass = async (req, res) => {
         if (feeRecords.length > 0) {
             await StudentFee_1.StudentFee.insertMany(feeRecords);
         }
-        // await session.commitTransaction();
         res.json({ success: true, message: `Assigned fee to ${feeRecords.length} students` });
     }
     catch (error) {
-        // await session.abortTransaction();
-        console.error(error);
+        console.error('[Finance] Assign fee to class error:', error.message);
         res.status(500).json({ message: 'Failed to assign fees' });
-    }
-    finally {
-        // session.endSession();
     }
 };
 exports.assignFeeToClass = assignFeeToClass;
+
