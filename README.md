@@ -365,3 +365,7 @@ For issues and questions, please create an issue on GitHub or contact the develo
 ## License
 
 MIT License - feel free to use this project for your college management needs.
+ AI-powered exam proctoring
+ Advanced analytics dashboard
+ Integration with payment gateways
+ Document management system
