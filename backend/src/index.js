@@ -32,6 +32,14 @@ const report_1 = __importDefault(require("./routes/report"));
 
 const app = (0, express_1.default)();
 
+// ─── 0. Trust Proxy ───────────────────────────────────────────────────────────
+// Render (and most cloud platforms) run behind a reverse proxy.
+// Setting trust proxy allows Express to correctly read X-Forwarded-For,
+// X-Forwarded-Proto headers — required for rate limiting and HTTPS redirects.
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 // ─── 1. HTTPS / HSTS Enforcement ──────────────────────────────────────────────
 // helmet() sets many secure headers including X-Content-Type-Options, X-Frame-Options,
 // Referrer-Policy, etc. In production, also enforces HSTS.
