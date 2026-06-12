@@ -1,6 +1,9 @@
 {
   "name": "college-management-backend",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "College Management System Backend - MERN Stack",
   "main": "src/index.js",
   "scripts": {
