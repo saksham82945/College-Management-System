@@ -15,17 +15,17 @@ services:
       - key: PORT
         value: 5000
       - key: MONGODB_URI
-        value: mongodb+srv://admin:Saksham82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement
+        sync: false   # ⚠️ Set in Render Dashboard only — never hardcode secrets
       - key: JWT_SECRET
-        value: 95e53834944eb361b42b01a53c356242531ed08c2baf3016390bcd629994893e8dc5d20da24b49660f41ce44975cd0580ba17acd736868d7e8920ef6f176fd11
+        sync: false   # ⚠️ Set in Render Dashboard only
       - key: JWT_REFRESH_SECRET
-        value: 2f9d13a9105c77eebe7f4a9265e20c29dfa31594f377757d12a0b46d4d164ec95cc6187a121132de8f473afec1cf08fd1fcf8a7990c6e04ff22bb8af4a3fa2a1
+        sync: false   # ⚠️ Set in Render Dashboard only
       - key: JWT_EXPIRE
         value: 24h
       - key: JWT_REFRESH_EXPIRE
         value: 7d
       - key: ENCRYPTION_KEY
-        value: 7948e4e05bbfb2201df5bfa6f8eb8d18888000d1eb28109a83316aee0eb00d1a
+        sync: false   # ⚠️ Set in Render Dashboard only
       - key: FRONTEND_URL
         value: https://college-management-frontend.onrender.com
       - key: LOG_LEVEL
