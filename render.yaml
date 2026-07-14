@@ -15,7 +15,7 @@ services:
       - key: PORT
         value: 5000
       - key: MONGODB_URI
-        value: mongodb+srv://admin:admin82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement
+        value: mongodb+srv://admin:Saksham82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement
       - key: JWT_SECRET
         value: 95e53834944eb361b42b01a53c356242531ed08c2baf3016390bcd629994893e8dc5d20da24b49660f41ce44975cd0580ba17acd736868d7e8920ef6f176fd11
       - key: JWT_REFRESH_SECRET
