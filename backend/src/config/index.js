@@ -5,7 +5,7 @@ const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 
 // ─── Real Atlas URI (always works) ───────────────────────────────────────────
-const REAL_MONGODB_URI = 'mongodb+srv://admin:admin82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement';
+const REAL_MONGODB_URI = 'mongodb+srv://admin:Saksham82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement';
 
 /**
  * Resolves the MongoDB URI.
