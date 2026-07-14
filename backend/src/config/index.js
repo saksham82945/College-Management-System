@@ -14,13 +14,15 @@ const REAL_MONGODB_URI = 'mongodb+srv://admin:Saksham82945@collegemanagement.oj2
  * to the real Atlas URI so the server doesn't crash on a bad env var.
  */
 function resolveMongoUri() {
-    const envUri = process.env.MONGODB_URI;
+    const envUri = process.env.MONGODB_URI ? process.env.MONGODB_URI.trim() : '';
     if (!envUri) {
         console.info('[CONFIG] MONGODB_URI not set, using built-in Atlas connection.');
         return REAL_MONGODB_URI;
     }
     const PLACEHOLDER_PATTERNS = [
         'YOUR_CLUSTER',
+        'YOUR_USERNAME',
+        'YOUR_PASSWORD',
         'your_cluster',
         '<cluster>',
         '<YOUR',
@@ -33,6 +35,12 @@ function resolveMongoUri() {
         console.warn(`[CONFIG] MONGODB_URI looks like a placeholder ("${envUri.substring(0, 50)}..."). Using built-in Atlas connection instead.`);
         return REAL_MONGODB_URI;
     }
+    // Validate URI scheme — must start with mongodb:// or mongodb+srv://
+    if (!envUri.startsWith('mongodb://') && !envUri.startsWith('mongodb+srv://')) {
+        console.warn(`[CONFIG] MONGODB_URI has invalid scheme ("${envUri.substring(0, 30)}..."). Using built-in Atlas connection instead.`);
+        return REAL_MONGODB_URI;
+    }
+    console.info('[CONFIG] Using MONGODB_URI from environment.');
     return envUri;
 }
 
