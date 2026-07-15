@@ -4,21 +4,19 @@ exports.config = void 0;
 const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 
-// ─── Real Atlas URI (always works) ───────────────────────────────────────────
-const REAL_MONGODB_URI = 'mongodb+srv://admin:Saksham82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement';
-
 /**
- * Resolves the MongoDB URI.
- * If MONGODB_URI env var is set but looks like a placeholder (contains YOUR_CLUSTER,
- * <cluster>, localhost with no port, or other known template patterns), fall back
- * to the real Atlas URI so the server doesn't crash on a bad env var.
+ * Resolves the MongoDB URI strictly from the environment.
+ * Throws a clear error if the URI is missing or looks like a placeholder.
+ * Credentials must NEVER be hardcoded in source code.
  */
 function resolveMongoUri() {
     const envUri = process.env.MONGODB_URI ? process.env.MONGODB_URI.trim() : '';
+
     if (!envUri) {
-        console.info('[CONFIG] MONGODB_URI not set, using built-in Atlas connection.');
-        return REAL_MONGODB_URI;
+        console.error('[CONFIG] MONGODB_URI environment variable is not set. Please set it in your Render dashboard (or .env for local dev).');
+        process.exit(1);
     }
+
     const PLACEHOLDER_PATTERNS = [
         'YOUR_CLUSTER',
         'YOUR_USERNAME',
@@ -32,14 +30,16 @@ function resolveMongoUri() {
     ];
     const isPlaceholder = PLACEHOLDER_PATTERNS.some(p => envUri.includes(p));
     if (isPlaceholder) {
-        console.warn(`[CONFIG] MONGODB_URI looks like a placeholder ("${envUri.substring(0, 50)}..."). Using built-in Atlas connection instead.`);
-        return REAL_MONGODB_URI;
+        console.error(`[CONFIG] MONGODB_URI looks like a placeholder ("${envUri.substring(0, 60)}..."). Please set the real Atlas URI in your environment.`);
+        process.exit(1);
     }
+
     // Validate URI scheme — must start with mongodb:// or mongodb+srv://
     if (!envUri.startsWith('mongodb://') && !envUri.startsWith('mongodb+srv://')) {
-        console.warn(`[CONFIG] MONGODB_URI has invalid scheme ("${envUri.substring(0, 30)}..."). Using built-in Atlas connection instead.`);
-        return REAL_MONGODB_URI;
+        console.error(`[CONFIG] MONGODB_URI has an invalid scheme ("${envUri.substring(0, 30)}..."). Must start with mongodb:// or mongodb+srv://.`);
+        process.exit(1);
     }
+
     console.info('[CONFIG] Using MONGODB_URI from environment.');
     return envUri;
 }

@@ -4,7 +4,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const MONGO_URI = 'mongodb+srv://admin:admin82945@collegemanagement.oj2meyf.mongodb.net/?appName=CollegeManagement';
+const MONGO_URI = 'mongodb+srv://Shreyiansbackend:Saksham82945@shreyiansbackend1.x4t6sdm.mongodb.net/?appName=CollegeManagement';
 
 const { User } = require('../models/User');
 const { Student } = require('../models/Student');

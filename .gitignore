@@ -17,6 +17,11 @@ pnpm-debug.log*
 .env.staging
 backend/.env
 frontend/.env
+# Additional env files containing secrets
+render.env
+backend/render.env
+backend/College-Management-System-backend.env
+*.env
 
 # ─── Build Outputs ────────────────────────────────────────────────────────────
 dist/

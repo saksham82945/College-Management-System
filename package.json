@@ -1,0 +1,14 @@
+{
+  "name": "college-management-system",
+  "version": "1.0.0",
+  "description": "College Management System - MERN Stack (Root)",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "postinstall": "cd backend && npm install",
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev"
+  },
+  "private": true
+}
