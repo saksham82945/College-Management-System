@@ -29,6 +29,7 @@ const attendance_1 = __importDefault(require("./routes/attendance"));
 const notification_1 = __importDefault(require("./routes/notification"));
 const exams_1 = __importDefault(require("./routes/exams"));
 const report_1 = __importDefault(require("./routes/report"));
+const library_1 = __importDefault(require("./routes/library"));
 
 const app = (0, express_1.default)();
 
@@ -185,6 +186,7 @@ app.use('/api/v1/attendance', attendance_1.default);
 app.use('/api/v1/notifications', notification_1.default);
 app.use('/api/v1/exams', exams_1.default);
 app.use('/api/v1/reports', report_1.default);
+app.use('/api/v1/library', library_1.default);
 
 // ─── 12. Global Error Handler ─────────────────────────────────────────────────
 app.use((err, req, res, next) => {

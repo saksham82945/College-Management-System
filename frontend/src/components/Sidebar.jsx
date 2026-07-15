@@ -7,7 +7,8 @@ import {
     ChevronDown, ChevronRight, Menu, Home, LogOut, Users, 
     GraduationCap, Calculator, ClipboardCheck, FileText, 
     Settings, Briefcase, LayoutDashboard, CreditCard, 
-    PieChart, UserCircle, CheckSquare, Sparkles, ChevronLeft
+    PieChart, UserCircle, CheckSquare, Sparkles, ChevronLeft,
+    Bell, BookOpen
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -36,6 +37,8 @@ export const Sidebar = () => {
             { label: 'Exams', path: '/exams', icon: FileText },
             { label: 'Timetable', path: '/timetable', icon: Calculator },
             { label: 'Payroll', path: '/payroll', icon: PieChart },
+            { label: 'Library', path: '/library', icon: BookOpen },
+            { label: 'Notifications', path: '/notifications', icon: Bell },
             { label: 'Settings', path: '/settings', icon: Settings },
         ],
         STUDENT: [
@@ -43,6 +46,7 @@ export const Sidebar = () => {
             { label: 'My Timetable', path: '/timetable', icon: Calculator },
             { label: 'Exams', path: '/exams', icon: FileText },
             { label: 'Grades', path: '/grades', icon: GraduationCap },
+            { label: 'Notifications', path: '/notifications', icon: Bell },
             { label: 'Settings', path: '/settings', icon: Settings },
         ],
         TEACHER: [
@@ -51,6 +55,8 @@ export const Sidebar = () => {
             { label: 'Attendance', path: '/attendance', icon: CheckSquare },
             { label: 'Exams', path: '/exams', icon: FileText },
             { label: 'Timetable', path: '/timetable', icon: Calculator },
+            { label: 'Library', path: '/library', icon: BookOpen },
+            { label: 'Notifications', path: '/notifications', icon: Bell },
             { label: 'Settings', path: '/settings', icon: Settings },
         ],
     };

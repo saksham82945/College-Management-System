@@ -29,6 +29,8 @@ const AttendancePage = React.lazy(() => import('@/pages/AttendancePage').then(m 
 const SignupPage = React.lazy(() => import('@/pages/SignupPage').then(m => ({ default: m.SignupPage })));
 const StudentDashboard = React.lazy(() => import('@/pages/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
 const TeacherDashboard = React.lazy(() => import('@/pages/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
+const NotificationsPage = React.lazy(() => import('@/pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const LibraryPage = React.lazy(() => import('@/pages/LibraryPage').then(m => ({ default: m.LibraryPage })));
 // Helper to create protected route
 const protect = (element, roles) => (<ProtectedRoute allowedRoles={roles}>{element}</ProtectedRoute>);
 export const routes = [
@@ -67,6 +69,10 @@ export const routes = [
     // Projects
     { path: '/projects/dashboard', element: protect(<ProjectDashboard />, ['ADMIN']) },
     { path: '/settings', element: protect(<SettingsPage />, ['ADMIN']) },
+    // Notifications — all roles
+    { path: '/notifications', element: protect(<NotificationsPage />) },
+    // Library — admin + teacher
+    { path: '/library', element: protect(<LibraryPage />, ['ADMIN', 'TEACHER']) },
     // Smart fallback — redirect based on user role
     { path: '*', element: <RoleRedirect /> }
 ];
