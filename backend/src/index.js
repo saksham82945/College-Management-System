@@ -87,14 +87,21 @@ if (process.env.NODE_ENV !== 'test') {
 
 // ─── 4. CORS ──────────────────────────────────────────────────────────────────
 const allowedOrigins = [
-    index_1.config.frontendUrl || 'http://localhost:5173',
+    index_1.config.frontendUrl,
+    'https://college-management-system-frontend-u7s6.onrender.com',
+    'https://college-management-frontend.onrender.com',
     'http://localhost:5173',
     'http://localhost:3000',
-];
+    'http://localhost:4173',
+].filter(Boolean);
+
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // Allow Postman, mobile, server-to-server
-        if (allowedOrigins.includes(origin)) {
+        // Allow requests with no origin (Postman, mobile apps, server-to-server)
+        if (!origin) return callback(null, true);
+        // Allow any onrender.com subdomain (handles free-tier URL changes)
+        const isOnrender = origin.endsWith('.onrender.com');
+        if (isOnrender || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else if (process.env.NODE_ENV !== 'production') {
             callback(null, true); // Allow all in development

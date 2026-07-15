@@ -26,7 +26,7 @@ services:
       - key: ENCRYPTION_KEY
         sync: false   # ⚠️ Set in Render Dashboard only
       - key: FRONTEND_URL
-        value: https://college-management-frontend.onrender.com
+        value: https://college-management-system-frontend-u7s6.onrender.com
       - key: LOG_LEVEL
         value: info
 
