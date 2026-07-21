@@ -5,6 +5,9 @@ const Student_1 = require("../models/Student");
 const Teacher_1 = require("../models/Teacher");
 const Payment_1 = require("../models/Payment");
 const Attendance_Model = require("../models/Attendance");
+const StudentFee_Model = require("../models/StudentFee");
+const Exam_Model = require("../models/Exam");
+const Class_Model = require("../models/Class");
 
 const getAdminDashboardStats = async (req, res) => {
     try {
@@ -102,6 +105,39 @@ const getTeacherDashboardStats = async (req, res) => {
         const totalMarked = await Attendance.countDocuments({ markedBy: userId }).catch(() => 0);
         const presentMarked = await Attendance.countDocuments({ markedBy: userId, status: 'PRESENT' }).catch(() => 0);
 
+        // Assigned classes count
+        let assignedClasses = 0;
+        try {
+            const Class = Class_Model.default || Class_Model;
+            const teacherId = teacher?._id;
+            if (teacherId) {
+                assignedClasses = await Class.countDocuments({
+                    $or: [{ classTeacher: teacherId }, { 'subjects.teacher': teacherId }]
+                }).catch(() => 0);
+            }
+        } catch { /* Class model may not have this field */ }
+
+        // Students with low attendance (below 75%)
+        const lowAttendanceStudents = [];
+        try {
+            const attByStudent = await Attendance.aggregate([
+                { $group: {
+                    _id: '$student',
+                    total: { $sum: 1 },
+                    present: { $sum: { $cond: [{ $eq: ['$status', 'PRESENT'] }, 1, 0] } }
+                }},
+                { $project: {
+                    pct: { $cond: [{ $gt: ['$total', 0] }, { $multiply: [{ $divide: ['$present', '$total'] }, 100] }, 0] }
+                }},
+                { $match: { pct: { $lt: 75 } } },
+                { $limit: 5 }
+            ]);
+            for (const rec of attByStudent) {
+                const s = await Student_1.Student.findById(rec._id).populate('userId', 'fullName').lean();
+                if (s) lowAttendanceStudents.push({ name: s.userId?.fullName || '—', rollNo: s.rollNo, pct: Math.round(rec.pct) });
+            }
+        } catch { /* non-critical */ }
+
         res.status(200).json({
             success: true,
             data: {
@@ -112,6 +148,7 @@ const getTeacherDashboardStats = async (req, res) => {
                     email: teacher.userId?.email || '—'
                 } : {},
                 totalStudents,
+                assignedClasses,
                 students: students.map(s => ({
                     id: s._id,
                     name: s.userId?.fullName || 'Unknown',
@@ -130,7 +167,8 @@ const getTeacherDashboardStats = async (req, res) => {
                     status: a.status,
                     studentRoll: a.student?.rollNo || '—',
                     studentCourse: a.student?.course || '—'
-                }))
+                })),
+                lowAttendanceStudents
             }
         });
     } catch (error) {
@@ -151,7 +189,7 @@ const getStudentDashboardStats = async (req, res) => {
         if (!student) {
             return res.status(200).json({
                 success: true,
-                data: { student: null, attendance: { total: 0, present: 0, presentPct: 0 }, fees: { paid: 0, due: 0 } }
+                data: { student: null, attendance: { total: 0, present: 0, absent: 0, presentPct: 0 }, fees: { paid: 0, due: 0 } }
             });
         }
 
@@ -159,11 +197,28 @@ const getStudentDashboardStats = async (req, res) => {
         const totalAttendance = await Attendance.countDocuments({ student: student._id }).catch(() => 0);
         const presentAttendance = await Attendance.countDocuments({ student: student._id, status: 'PRESENT' }).catch(() => 0);
 
+        // Fee data
         let feesPaid = 0;
+        let feesDue = 0;
         try {
             const payments = await Payment_1.Payment.find({ studentId: student._id, status: 'COMPLETED' });
             feesPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        } catch (e) { /* Payment model may not exist */ }
+        } catch { /* Payment model may not exist */ }
+        try {
+            const StudentFee = StudentFee_Model.default || StudentFee_Model;
+            const pendingFees = await StudentFee.find({ studentId: student._id, status: { $in: ['PENDING', 'PARTIAL'] } });
+            feesDue = pendingFees.reduce((sum, f) => sum + Math.max(0, (f.totalAmount || 0) - (f.paidAmount || 0)), 0);
+        } catch { /* StudentFee model may not exist */ }
+
+        // Upcoming exams (next 3)
+        let upcomingExams = [];
+        try {
+            const Exam = Exam_Model.default || Exam_Model;
+            upcomingExams = await Exam.find({ date: { $gte: new Date() } })
+                .sort({ date: 1 })
+                .limit(3)
+                .lean();
+        } catch { /* Exam model may not exist */ }
 
         res.status(200).json({
             success: true,
@@ -182,10 +237,14 @@ const getStudentDashboardStats = async (req, res) => {
                     absent: totalAttendance - presentAttendance,
                     presentPct: totalAttendance > 0 ? Math.round((presentAttendance / totalAttendance) * 100) : 0
                 },
-                fees: {
-                    paid: feesPaid,
-                    due: 0
-                }
+                fees: { paid: feesPaid, due: feesDue },
+                upcomingExams: upcomingExams.map(e => ({
+                    id: e._id,
+                    name: e.name || e.subject || 'Exam',
+                    date: e.date,
+                    subject: e.subject || e.name || '—',
+                    duration: e.duration || '—'
+                }))
             }
         });
     } catch (error) {

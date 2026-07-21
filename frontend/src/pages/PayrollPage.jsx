@@ -7,12 +7,14 @@ import { apiClient } from '@/services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader, Button } from '@/components';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { API_BASE_URL } from '@/services/API_BASE_URL';
 
 export const PayrollPage = () => {
     const { isDarkMode } = useTheme();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [downloadingId, setDownloadingId] = useState(null);
 
     useEffect(() => {
         const fetchEmployees = async () => {
@@ -81,6 +83,54 @@ export const PayrollPage = () => {
         });
     };
 
+    // Download salary slip PDF for a specific employee salary record
+    const handleDownloadSalarySlip = async (emp) => {
+        if (!emp.salaryId) {
+            toast.error('No salary record found. Process salary first.');
+            return;
+        }
+        setDownloadingId(emp.id);
+        const toastId = toast.loading('Generating salary slip...');
+        try {
+            const response = await apiClient.get(`/payroll/payslip/${emp.salaryId}/pdf`, {
+                responseType: 'blob',
+            });
+            const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `SalarySlip_${emp.name.replace(/\s+/g, '_')}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            toast.success('Salary slip downloaded!', { id: toastId });
+        } catch (err) {
+            toast.error('Failed to generate salary slip', { id: toastId });
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    // Export payroll summary as CSV
+    const handleExportCSV = () => {
+        const headers = ['Name', 'Designation', 'Department', 'Type', 'Salary (INR)', 'Status', 'Date'];
+        const rows = employees.map(e => [
+            `"${e.name}"`, `"${e.designation}"`, `"${e.department}"`,
+            e.type, e.salary || 0, e.status, e.date
+        ]);
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Payroll_Report_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        toast.success('Payroll report exported!');
+    };
+
     const totalSalary = employees.reduce((acc, e) => acc + (e.salary || 0), 0);
     const pendingCount = employees.filter(e => e.status !== 'Paid').length;
     const paidCount = employees.filter(e => e.status === 'Paid').length;
@@ -100,7 +150,7 @@ export const PayrollPage = () => {
                     icon={Wallet}
                     backTo="/dashboard"
                     actions={
-                        <Button variant="secondary" icon={Download}>
+                        <Button variant="secondary" icon={Download} onClick={handleExportCSV}>
                             Export Report
                         </Button>
                     }
@@ -228,8 +278,16 @@ export const PayrollPage = () => {
                                                         Pay
                                                     </Button>
                                                 ) : (
-                                                    <button className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-primary transition-colors">
-                                                        <FileText size={18} />
+                                                    <button
+                                                        id={`download-slip-${emp.id}`}
+                                                        onClick={() => handleDownloadSalarySlip(emp)}
+                                                        disabled={downloadingId === emp.id}
+                                                        title="Download Salary Slip PDF"
+                                                        className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {downloadingId === emp.id
+                                                            ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                                            : <FileText size={18} />}
                                                     </button>
                                                 )}
                                             </td>

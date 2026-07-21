@@ -1,5 +1,7 @@
 'use strict';
 const Notification = require('../models/Notification');
+const { sendNotificationEmail } = require('../utils/email');
+
 
 /** GET /api/v1/notifications */
 const getNotifications = async (req, res) => {
@@ -24,10 +26,19 @@ const getNotifications = async (req, res) => {
 /** POST /api/v1/notifications */
 const createNotification = async (req, res) => {
     try {
-        const { title, message, type, targetRole } = req.body;
+        const { title, message, type, targetRole, sendEmail: dispatchEmail, targetEmail, targetName } = req.body;
         if (!title || !message) return res.status(400).json({ message: 'title and message are required' });
 
         const notification = await Notification.create({ title, message, type: type || 'INFO', targetRole });
+
+        // Optional: dispatch email notification (non-blocking)
+        if (dispatchEmail && targetEmail) {
+            sendNotificationEmail(
+                { fullName: targetName || 'Member', email: targetEmail },
+                { title, message, type: type || 'info' }
+            ).catch(err => console.error('[Notification] Email dispatch failed:', err.message));
+        }
+
         res.status(201).json({ message: 'Notification created', data: notification });
     } catch (err) {
         res.status(500).json({ message: 'Failed to create notification', error: err.message });

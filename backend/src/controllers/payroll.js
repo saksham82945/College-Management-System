@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.processSalaryPayment = exports.processMonthlySalary = exports.getPayslip = exports.getSalarySheet = void 0;
+exports.processSalaryPayment = exports.processMonthlySalary = exports.getPayslip = exports.getSalarySheet = exports.downloadSalarySlipPDF = void 0;
 const Salary_1 = require("../models/Salary");
 const SalaryPayment_1 = require("../models/SalaryPayment");
 const Teacher_1 = require("../models/Teacher");
 const errors_1 = require("../utils/errors");
 const uuid_1 = require("uuid");
+const pdf_1 = require("../utils/pdf");
 const getSalarySheet = async (req, res) => {
     try {
         const { month, year } = req.query;
@@ -133,3 +134,42 @@ const processSalaryPayment = async (req, res) => {
     }
 };
 exports.processSalaryPayment = processSalaryPayment;
+
+// ─── PDF Download: Salary Slip ────────────────────────────────────────────────
+const downloadSalarySlipPDF = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const salary = await Salary_1.Salary.findById(id)
+            .populate({
+                path: 'teacherId',
+                populate: { path: 'userId', select: 'fullName email phone' },
+            })
+            .populate('earnings.componentId', 'name type')
+            .populate('deductions.componentId', 'name type')
+            .lean();
+
+        if (!salary) {
+            throw new errors_1.AppError('Salary record not found', 404, 'SALARY_NOT_FOUND');
+        }
+
+        const teacher = salary.teacherId || {};
+        const employeeId = teacher.employeeId || id;
+        const filename = `SalarySlip_${employeeId}_${salary.month || 'NA'}_${salary.year || ''}.pdf`
+            .replace(/[^a-zA-Z0-9-_.]/g, '_');
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Cache-Control', 'no-cache');
+
+        const pdfDoc = (0, pdf_1.generateSalarySlipPDF)(salary);
+        pdfDoc.pipe(res);
+    } catch (error) {
+        if (error instanceof errors_1.AppError) {
+            res.status(error.statusCode).json({ message: error.message });
+        } else {
+            console.error('[Payroll PDF] Error:', error.message);
+            res.status(500).json({ message: 'Failed to generate salary slip PDF' });
+        }
+    }
+};
+exports.downloadSalarySlipPDF = downloadSalarySlipPDF;

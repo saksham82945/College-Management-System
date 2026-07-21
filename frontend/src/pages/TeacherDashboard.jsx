@@ -31,9 +31,11 @@ export const TeacherDashboard = () => {
     const [data, setData] = useState({
         teacher: {},
         totalStudents: 0,
+        assignedClasses: 0,
         students: [],
         attendanceStats: { totalMarked: 0, presentMarked: 0, absentMarked: 0, presentPct: 0 },
-        recentAttendance: []
+        recentAttendance: [],
+        lowAttendanceStudents: []
     });
 
     useEffect(() => {
@@ -106,6 +108,10 @@ export const TeacherDashboard = () => {
                             <div className="glass-card !bg-white/10 p-5 rounded-3xl border border-white/20 text-center min-w-[140px]">
                                 <p className="text-3xl font-black">{data.attendanceStats.presentPct}%</p>
                                 <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">Class Attendance</p>
+                            </div>
+                            <div className="glass-card !bg-white/10 p-5 rounded-3xl border border-white/20 text-center min-w-[140px]">
+                                <p className="text-3xl font-black">{data.assignedClasses}</p>
+                                <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">Assigned Classes</p>
                             </div>
                         </div>
                     </div>
@@ -223,6 +229,35 @@ export const TeacherDashboard = () => {
                         </div>
                     </motion.div>
                 </div>
+
+                {/* Low Attendance Alert */}
+                {data.lowAttendanceStudents?.length > 0 && (
+                    <motion.div variants={itemVariants} className="glass-card p-8 rounded-[2.5rem]">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                                <AlertCircle className="text-amber-500" size={20} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Low Attendance Alert</h2>
+                                <p className="text-xs text-slate-500">Students below 75% attendance threshold</p>
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            {data.lowAttendanceStudents.map((s, i) => (
+                                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+                                    <div>
+                                        <p className="text-sm font-black text-slate-900 dark:text-white">{s.name}</p>
+                                        <p className="text-xs text-slate-500">{s.rollNo || '—'}</p>
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-black ${
+                                        s.pct < 65 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                    }`}>{s.pct}%</span>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </motion.div>
         </Layout>
     );

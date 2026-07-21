@@ -31,7 +31,8 @@ export const StudentDashboard = () => {
     const [data, setData] = useState({
         student: null,
         attendance: { total: 0, present: 0, absent: 0, presentPct: 0 },
-        fees: { paid: 0, due: 0 }
+        fees: { paid: 0, due: 0 },
+        upcomingExams: []
     });
 
     useEffect(() => {
@@ -141,18 +142,18 @@ export const StudentDashboard = () => {
                         bg="bg-indigo-500/10" 
                     />
                     <StatCard 
+                        title="Fees Due" 
+                        value={data.fees.due > 0 ? `₹${(data.fees.due / 1000).toFixed(1)}k` : 'Clear'} 
+                        icon={AlertCircle}
+                        color={data.fees.due > 0 ? 'text-amber-500' : 'text-emerald-500'} 
+                        bg={data.fees.due > 0 ? 'bg-amber-500/10' : 'bg-emerald-500/10'} 
+                    />
+                    <StatCard 
                         title="Total Present" 
                         value={data.attendance.present} 
                         icon={BookOpen} 
                         color="text-sky-500" 
                         bg="bg-sky-500/10" 
-                    />
-                    <StatCard 
-                        title="Total Absent" 
-                        value={data.attendance.absent} 
-                        icon={TrendingUp} 
-                        color="text-rose-500" 
-                        bg="bg-rose-500/10" 
                     />
                 </div>
 
@@ -285,6 +286,31 @@ export const StudentDashboard = () => {
                         />
                     ))}
                 </div>
+
+                {/* Upcoming Exams */}
+                {data.upcomingExams?.length > 0 && (
+                    <motion.div variants={itemVariants} className="glass-card p-8 rounded-[2.5rem]">
+                        <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-6 flex items-center gap-3">
+                            <Calendar className="text-primary" size={24} />
+                            Upcoming Exams
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {data.upcomingExams.map((exam, i) => (
+                                <div key={exam.id || i} className="p-5 rounded-2xl bg-primary/5 border border-primary/10">
+                                    <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">
+                                        {exam.date ? new Date(exam.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBA'}
+                                    </p>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white">{exam.name || exam.subject}</p>
+                                    {exam.duration && exam.duration !== '—' && (
+                                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                            <Clock size={11} /> {exam.duration}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </motion.div>
         </Layout>
     );

@@ -30,6 +30,7 @@ const notification_1 = __importDefault(require("./routes/notification"));
 const exams_1 = __importDefault(require("./routes/exams"));
 const report_1 = __importDefault(require("./routes/report"));
 const library_1 = __importDefault(require("./routes/library"));
+const { startScheduler } = require('./services/scheduler');
 
 const app = (0, express_1.default)();
 
@@ -221,6 +222,7 @@ const connectDB = async () => {
 const startServer = async () => {
     try {
         await connectDB();
+        startScheduler();
         app.listen(index_1.config.port, () => {
             console.log(`[SERVER] Running on port ${index_1.config.port} in ${process.env.NODE_ENV || 'development'} mode`);
             console.log(`[SECURITY] XSS protection: ✓ | NoSQL injection protection: ✓ | Rate limiting: ✓ | Helmet: ✓`);

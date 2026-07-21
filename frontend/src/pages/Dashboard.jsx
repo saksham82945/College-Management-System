@@ -4,11 +4,11 @@ import {
     Users, GraduationCap, DollarSign, TrendingUp, CreditCard, 
     Calendar as CalendarIcon, ArrowRight, CheckCircle, XCircle, 
     Zap, Activity, Target, Landmark, LayoutDashboard,
-    PieChart, Clock, ShieldCheck, UserPlus
+    PieChart, Clock, ShieldCheck, UserPlus, Download
 } from 'lucide-react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
-    ResponsiveContainer, BarChart, Bar, Cell
+    ResponsiveContainer, BarChart, Bar, Cell, Legend
 } from 'recharts';
 import { apiClient } from '@/services/api';
 import { useTheme } from '@/context/ThemeContext';
@@ -67,6 +67,34 @@ export const Dashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleExportStudents = async () => {
+        try {
+            const res = await apiClient.get('/reports/students/export', { responseType: 'blob' });
+            const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Student_Roster_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch { /* ignore */ }
+    };
+
+    const handleExportFinancial = async () => {
+        try {
+            const res = await apiClient.get('/reports/financial/export', { responseType: 'blob' });
+            const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Financial_Report_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch { /* ignore */ }
     };
 
     if (loading) {
@@ -151,8 +179,17 @@ export const Dashboard = () => {
                                 <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Fee Collection Overview</h2>
                                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-1">Monthly collection analytics</p>
                             </div>
-                            <div className="p-3 bg-primary/10 text-primary rounded-2xl shadow-inner">
-                                <TrendingUp size={20} />
+                            <div className="flex items-center gap-3">
+                                <button
+                                    id="export-financial-csv"
+                                    onClick={handleExportFinancial}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-primary hover:bg-primary/10 text-xs font-bold transition-colors"
+                                >
+                                    <Download size={13} /> Export CSV
+                                </button>
+                                <div className="p-3 bg-primary/10 text-primary rounded-2xl shadow-inner">
+                                    <TrendingUp size={20} />
+                                </div>
                             </div>
                         </div>
 
@@ -307,8 +344,57 @@ export const Dashboard = () => {
                         </motion.div>
                     </div>
                 </div>
+
+                {/* Attendance Bar Chart */}
+                {stats.chartData?.length > 0 && (
+                    <motion.div variants={itemVariants} className={`p-10 rounded-[3rem] border glass-card ${
+                        isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50'
+                    }`}>
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Enrollment & Revenue Breakdown</h2>
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-1">Student enrollment vs fee revenue per month</p>
+                            </div>
+                            <button
+                                id="export-students-csv"
+                                onClick={async () => {
+                                    const { data } = await apiClient.get('/reports/students/export', { responseType: 'blob' });
+                                    const url = window.URL.createObjectURL(new Blob([data]));
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.setAttribute('download', 'students-report.csv');
+                                    document.body.appendChild(link);
+                                    link.click();
+                                }}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-primary hover:bg-primary/10 text-xs font-bold transition-colors"
+                            >
+                                <Download size={13} /> Export Students
+                            </button>
+                        </div>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={stats.chartData} barGap={6}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#1e293b' : '#f1f5f9'} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 10, fontWeight: 800 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 10, fontWeight: 800 }} />
+                                    <Tooltip
+                                        cursor={{ fill: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', radius: 12 }}
+                                        contentStyle={{
+                                            backgroundColor: isDarkMode ? '#0f172a' : '#fff',
+                                            border: isDarkMode ? '1px solid #1e293b' : '1px solid #f1f5f9',
+                                            borderRadius: '16px',
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                                        }}
+                                    />
+                                    <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 700, paddingTop: '16px' }} />
+                                    <Bar dataKey="revenue" name="Revenue (₹)" fill="var(--primary)" radius={[8, 8, 0, 0]} maxBarSize={40} />
+                                    <Bar dataKey="students" name="Students" fill="#10b981" radius={[8, 8, 0, 0]} maxBarSize={40} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </motion.div>
+                )}
             </motion.div>
         </Layout>
     );
 };
-

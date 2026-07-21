@@ -5,7 +5,7 @@ import { apiClient } from '@/services/api';
 import toast from 'react-hot-toast';
 import {
     ChevronLeft, User, Mail, Phone, Calendar, Users,
-    GraduationCap, CreditCard, AlertTriangle, Trash2, TrendingUp, FileText
+    GraduationCap, CreditCard, AlertTriangle, Trash2, TrendingUp, FileText, Download
 } from 'lucide-react';
 
 export const StudentDetailsPage = () => {
@@ -53,6 +53,27 @@ export const StudentDetailsPage = () => {
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to delete student');
             setDeleting(false);
+        }
+    };
+
+    // Download fee receipt as PDF
+    const handleDownloadReceipt = async (receiptId, receiptNo) => {
+        const toastId = toast.loading('Generating PDF receipt...');
+        try {
+            const response = await apiClient.get(`/finance/receipt/${receiptId}/pdf`, {
+                responseType: 'blob',
+            });
+            const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `FeeReceipt_${receiptNo || receiptId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            toast.success('Receipt downloaded!', { id: toastId });
+        } catch (err) {
+            toast.error('Failed to download receipt PDF', { id: toastId });
         }
     };
 
@@ -248,13 +269,14 @@ export const StudentDetailsPage = () => {
                                                     <th className="px-4 py-3 text-gray-500 font-medium text-xs uppercase">Amount</th>
                                                     <th className="px-4 py-3 text-gray-500 font-medium text-xs uppercase">Due Date</th>
                                                     <th className="px-4 py-3 text-gray-500 font-medium text-xs uppercase">Status</th>
+                                                    <th className="px-4 py-3 text-gray-500 font-medium text-xs uppercase">Receipt</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-50">
                                                 {financials.map((fee) => (
                                                     <tr key={fee._id} className="hover:bg-gray-50">
                                                         <td className="px-4 py-3">{fee.feeTypeId?.name || 'General Fee'}</td>
-                                                        <td className="px-4 py-3 font-mono font-medium">₹{(fee.amount || 0).toLocaleString('en-IN')}</td>
+                                                        <td className="px-4 py-3 font-mono font-medium">₹{(fee.amountDue || fee.amount || 0).toLocaleString('en-IN')}</td>
                                                         <td className="px-4 py-3 text-gray-500">{fee.dueDate ? new Date(fee.dueDate).toLocaleDateString('en-IN') : 'N/A'}</td>
                                                         <td className="px-4 py-3">
                                                             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -266,6 +288,21 @@ export const StudentDetailsPage = () => {
                                                             }`}>
                                                                 {fee.status || 'pending'}
                                                             </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {fee.receiptId ? (
+                                                                <button
+                                                                    id={`download-receipt-${fee._id}`}
+                                                                    onClick={() => handleDownloadReceipt(fee.receiptId, fee.receiptNo)}
+                                                                    title="Download Receipt PDF"
+                                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-semibold transition-colors"
+                                                                >
+                                                                    <Download size={12} />
+                                                                    PDF
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-gray-300 text-xs">—</span>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))}

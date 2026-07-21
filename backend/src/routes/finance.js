@@ -13,6 +13,7 @@ const router = express_1.default.Router();
 // Read operations — no audit needed
 router.get('/student/:studentId', auth_1.authMiddleware, finance_1.getStudentFees);
 router.get('/receipt/:id', auth_1.authMiddleware, finance_1.getReceipt);
+router.get('/receipt/:id/pdf', auth_1.authMiddleware, finance_1.downloadReceiptPDF);
 router.get('/payment-history/:studentId', auth_1.authMiddleware, finance_1.getPaymentHistory);
 router.get('/structure', auth_1.authMiddleware, finance_1.getAllFeeTypes);
 

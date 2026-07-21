@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assignFeeToClass = exports.getAllFeeTypes = exports.createFeeType = exports.getPaymentHistory = exports.getReceipt = exports.processPayment = exports.getStudentFees = void 0;
+exports.assignFeeToClass = exports.getAllFeeTypes = exports.createFeeType = exports.getPaymentHistory = exports.downloadReceiptPDF = exports.getReceipt = exports.processPayment = exports.getStudentFees = void 0;
 const StudentFee_1 = require("../models/StudentFee");
 const Payment_1 = require("../models/Payment");
 const Receipt_1 = require("../models/Receipt");
@@ -8,6 +8,7 @@ const errors_1 = require("../utils/errors");
 const uuid_1 = require("uuid");
 const FeeType_1 = require("../models/FeeType");
 const Student_1 = require("../models/Student");
+const pdf_1 = require("../utils/pdf");
 const getStudentFees = async (req, res) => {
     try {
         const { studentId } = req.params;
@@ -193,4 +194,42 @@ const assignFeeToClass = async (req, res) => {
     }
 };
 exports.assignFeeToClass = assignFeeToClass;
+
+// ─── PDF Download: Fee Receipt ────────────────────────────────────────────────
+const downloadReceiptPDF = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const receipt = await Receipt_1.Receipt.findById(id)
+            .populate({
+                path: 'studentId',
+                populate: { path: 'userId', select: 'fullName email phone' },
+            })
+            .populate('paymentIds')
+            .populate('feeDetails.feeTypeId', 'name')
+            .lean();
+
+        if (!receipt) {
+            throw new errors_1.AppError('Receipt not found', 404, 'RECEIPT_NOT_FOUND');
+        }
+
+        const studentName = receipt.studentId?.userId?.fullName || 'Student';
+        const safeReceiptNo = (receipt.receiptNo || id).replace(/[^a-zA-Z0-9-]/g, '_');
+        const filename = `FeeReceipt_${safeReceiptNo}.pdf`;
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Cache-Control', 'no-cache');
+
+        const pdfDoc = (0, pdf_1.generateFeeReceiptPDF)(receipt);
+        pdfDoc.pipe(res);
+    } catch (error) {
+        if (error instanceof errors_1.AppError) {
+            res.status(error.statusCode).json({ message: error.message });
+        } else {
+            console.error('[Finance PDF] Error:', error.message);
+            res.status(500).json({ message: 'Failed to generate receipt PDF' });
+        }
+    }
+};
+exports.downloadReceiptPDF = downloadReceiptPDF;
 
