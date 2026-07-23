@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell, Sun, Moon, LogOut, User, Settings, ChevronDown,
     CheckCheck, Trash2, Info, AlertTriangle, CheckCircle, X,
-    ArrowRight
+    ArrowRight, Menu
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate as useNav } from 'react-router-dom';
@@ -145,7 +145,7 @@ const NotificationDropdown = ({ onClose }) => {
 };
 
 // ── Main Header ───────────────────────────────────────────────────────────────
-export const Header = () => {
+export const Header = ({ toggleMobileMenu }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const notifRef = useRef(null);
@@ -172,8 +172,15 @@ export const Header = () => {
 
     return (
         <header className="sticky top-0 z-30 w-full h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-900 transition-colors duration-300">
-            <div className="flex justify-between items-center h-full px-6">
+            <div className="flex justify-between items-center h-full px-4 md:px-6">
                 <div className="flex items-center gap-4">
+                    {/* Mobile Hamburger Button */}
+                    <button
+                        onClick={toggleMobileMenu}
+                        className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-primary md:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <Menu size={20} />
+                    </button>
                     <div className="hidden md:block">
                         <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Dashboard Overview</h2>
                     </div>

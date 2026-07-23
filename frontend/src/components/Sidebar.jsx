@@ -11,13 +11,28 @@ import {
     Bell, BookOpen
 } from 'lucide-react';
 
-export const Sidebar = () => {
+export const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
     const [collapsed, setCollapsed] = useState(false);
     const [expandedMenus, setExpandedMenus] = useState(['FACULTY & STAFF']);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const navigate = useNavigate();
     const location = useLocation();
     const { user, logout } = useAuthStore();
     const { isDarkMode, roleTheme } = useTheme();
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        if (mobileMenuOpen && setMobileMenuOpen) {
+            setMobileMenuOpen(false);
+        }
+    }, [location.pathname]);
 
     const menuItems = {
         ADMIN: [
@@ -139,71 +154,88 @@ export const Sidebar = () => {
     };
 
     return (
-        <motion.aside 
-            initial={false}
-            animate={{ width: collapsed ? 80 : 280 }}
-            className={`sticky top-0 h-screen z-40 flex flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 transition-colors duration-300 shadow-xl overflow-hidden`}
-        >
-            {/* Logo Section */}
-            <div className="p-6 h-20 flex items-center justify-between">
-                <AnimatePresence mode="wait">
-                    {!collapsed && (
-                        <motion.div 
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="flex items-center gap-3"
+        <>
+            {/* Mobile Backdrop */}
+            {mobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+            <motion.aside 
+                initial={false}
+                animate={{ width: isMobile ? 280 : (collapsed ? 80 : 280) }}
+                className={`fixed md:sticky top-0 left-0 h-screen z-40 flex flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 transition-all duration-300 shadow-xl overflow-hidden
+                    ${isMobile 
+                        ? (mobileMenuOpen ? 'translate-x-0' : '-translate-x-full') 
+                        : 'translate-x-0'
+                    }
+                `}
+            >
+                {/* Logo Section */}
+                <div className="p-6 h-20 flex items-center justify-between">
+                    <AnimatePresence mode="wait">
+                        {(!collapsed || isMobile) && (
+                            <motion.div 
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="flex items-center gap-3"
+                            >
+                                <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleTheme} flex items-center justify-center text-white shadow-lg`}>
+                                    <Sparkles size={20} />
+                                </div>
+                                <h1 className="text-lg font-black tracking-tighter text-slate-900 dark:text-white">
+                                    LNMI<span className="text-primary">CMS</span>
+                                </h1>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                    
+                    {/* Hide toggle collapse button on mobile */}
+                    {!isMobile && (
+                        <button 
+                            onClick={() => setCollapsed(!collapsed)}
+                            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary transition-all shadow-sm"
                         >
-                            <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleTheme} flex items-center justify-center text-white shadow-lg`}>
-                                <Sparkles size={20} />
-                            </div>
-                            <h1 className="text-lg font-black tracking-tighter text-slate-900 dark:text-white">
-                                LNMI<span className="text-primary">CMS</span>
-                            </h1>
-                        </motion.div>
+                            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                        </button>
                     )}
-                </AnimatePresence>
-                
-                <button 
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary transition-all shadow-sm"
-                >
-                    {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-                </button>
-            </div>
+                </div>
 
-            {/* Menu Section */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-2">
-                {!collapsed && (
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-4 ml-2">
-                        Main Menu
-                    </p>
-                )}
-                {items.map(item => renderMenuItem(item))}
-            </div>
+                {/* Menu Section */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-2">
+                    {(!collapsed || isMobile) && (
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-4 ml-2">
+                            Main Menu
+                        </p>
+                    )}
+                    {items.map(item => renderMenuItem(item))}
+                </div>
 
-            {/* Bottom Section */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-                <button 
-                    onClick={() => navigate('/')}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mb-1
-                        ${collapsed ? 'justify-center px-0 w-12 mx-auto' : ''}
-                    `}
-                >
-                    <Home size={20} />
-                    {!collapsed && <span className="text-sm font-bold tracking-tight">Main Site</span>}
-                </button>
-                <button 
-                    onClick={() => { logout(); navigate('/login'); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-danger/10 transition-all
-                        ${collapsed ? 'justify-center px-0 w-12 mx-auto' : ''}
-                    `}
-                >
-                    <LogOut size={20} />
-                    {!collapsed && <span className="text-sm font-bold tracking-tight">Sign Out</span>}
-                </button>
-            </div>
-        </motion.aside>
+                {/* Bottom Section */}
+                <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                    <button 
+                        onClick={() => navigate('/')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mb-1
+                            ${collapsed && !isMobile ? 'justify-center px-0 w-12 mx-auto' : ''}
+                        `}
+                    >
+                        <Home size={20} />
+                        {(!collapsed || isMobile) && <span className="text-sm font-bold tracking-tight">Main Site</span>}
+                    </button>
+                    <button 
+                        onClick={() => { logout(); navigate('/login'); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-danger/10 transition-all
+                            ${collapsed && !isMobile ? 'justify-center px-0 w-12 mx-auto' : ''}
+                        `}
+                    >
+                        <LogOut size={20} />
+                        {(!collapsed || isMobile) && <span className="text-sm font-bold tracking-tight">Sign Out</span>}
+                    </button>
+                </div>
+            </motion.aside>
+        </>
     );
 };
 
