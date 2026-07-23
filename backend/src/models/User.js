@@ -68,5 +68,8 @@ const userSchema = new mongoose_1.default.Schema({
         ref: 'Student',
     },
 }, { timestamps: true });
+// Apply SaaS multi-tenancy logical isolation plugin
+const { tenantPlugin } = require('./plugins/tenantPlugin');
+userSchema.plugin(tenantPlugin);
 // Index for email
 exports.User = mongoose_1.default.model('User', userSchema);

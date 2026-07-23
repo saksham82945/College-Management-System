@@ -167,10 +167,9 @@ app.get('/health', (req, res) => {
     });
 });
 
-// ─── 10. Root Route ───────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-    res.json({ message: 'College Management API is running' });
-});
+// ─── 10.5 Tenant Scoping Middleware ──────────────────────────────────────────
+const { tenantMiddleware } = require('./middleware/tenant');
+app.use('/api/v1', tenantMiddleware);
 
 // ─── 11. API Routes ───────────────────────────────────────────────────────────
 // Apply stricter rate limit to auth endpoints to prevent brute-force

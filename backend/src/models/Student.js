@@ -59,6 +59,9 @@ const studentSchema = new mongoose_1.default.Schema({
         default: 'active',
     },
 }, { timestamps: true });
+// Apply SaaS multi-tenancy plugin
+const { tenantPlugin } = require('./plugins/tenantPlugin');
+studentSchema.plugin(tenantPlugin);
 // Indexes
 studentSchema.index({ rollNo: 1 });
 studentSchema.index({ course: 1 });

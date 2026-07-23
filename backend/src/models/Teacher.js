@@ -56,4 +56,7 @@ const teacherSchema = new mongoose_1.default.Schema({
 }, {
     timestamps: true,
 });
+// Apply SaaS multi-tenancy plugin
+const { tenantPlugin } = require('./plugins/tenantPlugin');
+teacherSchema.plugin(tenantPlugin);
 exports.Teacher = mongoose_1.default.model('Teacher', teacherSchema);

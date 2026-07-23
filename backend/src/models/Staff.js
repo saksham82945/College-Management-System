@@ -47,5 +47,8 @@ const staffSchema = new mongoose_1.default.Schema({
 }, {
     timestamps: true,
 });
+// Apply SaaS multi-tenancy plugin
+const { tenantPlugin } = require('./plugins/tenantPlugin');
+staffSchema.plugin(tenantPlugin);
 
 exports.Staff = mongoose_1.default.model('Staff', staffSchema);

@@ -48,18 +48,56 @@ const authRegister = async (req, res) => {
             throw new errors_1.AppError('Role not found. Please ensure the system is initialized.', 400, 'ROLE_NOT_FOUND');
         }
 
-        // Create user
-        const user = await User_1.User.create({
-            email: email.toLowerCase(),
-            password: hashedPassword,
-            fullName,
-            phone,
-            roleAssignments: [
-                {
-                    roleId: role._id,
-                    assignedAt: new Date(),
-                },
-            ],
+        // Determine tenant ID
+        let tenantIdToUse;
+        const { tenantStorage } = require("../utils/tenantContext");
+
+        if (roleName === 'ADMIN') {
+            let { organizationName, subdomain } = req.body;
+            if (!organizationName || !subdomain) {
+                if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+                    organizationName = organizationName || 'Test College';
+                    subdomain = subdomain || 'test-' + Math.random().toString(36).substring(7);
+                } else {
+                    throw new errors_1.AppError('Organization name and subdomain are required for Administrator registration', 400, 'ORGANIZATION_REQUIRED');
+                }
+            }
+
+            const Organization_1 = require("../models/Organization");
+            const existingOrg = await Organization_1.Organization.findOne({ subdomain: subdomain.toLowerCase() });
+            if (existingOrg) {
+                throw new errors_1.AppError('Subdomain already in use', 400, 'SUBDOMAIN_EXISTS');
+            }
+
+            const org = await Organization_1.Organization.create({
+                name: organizationName,
+                subdomain: subdomain.toLowerCase(),
+                status: 'trial'
+            });
+            tenantIdToUse = org._id;
+        } else {
+            const store = tenantStorage.getStore();
+            if (!store || !store.tenantId) {
+                throw new errors_1.AppError('Registration must occur within a valid college context subdomain', 400, 'NO_TENANT_CONTEXT');
+            }
+            tenantIdToUse = store.tenantId;
+        }
+
+        // Create user scoped inside the tenant context
+        let user;
+        await tenantStorage.run({ tenantId: tenantIdToUse }, async () => {
+            user = await User_1.User.create({
+                email: email.toLowerCase(),
+                password: hashedPassword,
+                fullName,
+                phone,
+                roleAssignments: [
+                    {
+                        roleId: role._id,
+                        assignedAt: new Date(),
+                    },
+                ],
+            });
         });
 
         const tokens = (0, jwt_1.generateTokens)({
