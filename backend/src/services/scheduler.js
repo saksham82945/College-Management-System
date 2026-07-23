@@ -2,7 +2,7 @@
 const cron = require('node-cron');
 
 // Models and email utility — lazy-required to ensure Mongoose is connected first
-let StudentFee, Student, Attendance, emailUtils;
+let StudentFee, Student, Attendance, emailUtils, smsUtils;
 const getModels = () => {
     if (!StudentFee) {
         try { StudentFee = require('../models/StudentFee'); } catch { StudentFee = null; }
@@ -12,6 +12,7 @@ const getModels = () => {
             Attendance = A.default || A;
         } catch { Attendance = null; }
         emailUtils = require('../utils/email');
+        smsUtils = require('../utils/sms');
     }
 };
 
@@ -33,24 +34,40 @@ const runFeeReminders = async () => {
         let sent = 0;
         for (const fee of overdueFees) {
             const student = fee.studentId;
-            if (!student?.userId?.email) continue;
+            if (!student?.userId) continue;
+
+            const preferences = student.userId.preferences || { emailNotifications: true, smsNotifications: false };
+            const phone = student.userId.phone;
 
             try {
-                await emailUtils.sendFeeReminderEmail(
-                    {
-                        name:   student.userId.fullName || 'Student',
-                        email:  student.userId.email,
-                        rollNo: student.rollNo || '—',
-                    },
-                    {
-                        amount:  (fee.totalAmount || 0) - (fee.paidAmount || 0),
-                        dueDate: fee.dueDate,
-                        feeType: fee.feeTypeId?.name || 'General Fee',
-                    }
-                );
+                if (student.userId.email && preferences.emailNotifications !== false) {
+                    await emailUtils.sendFeeReminderEmail(
+                        {
+                            name:   student.userId.fullName || 'Student',
+                            email:  student.userId.email,
+                            rollNo: student.rollNo || '—',
+                        },
+                        {
+                            amount:  (fee.totalAmount || 0) - (fee.paidAmount || 0),
+                            dueDate: fee.dueDate,
+                            feeType: fee.feeTypeId?.name || 'General Fee',
+                        }
+                    );
+                }
+                
+                if (phone && preferences.smsNotifications) {
+                    await smsUtils.sendFeeReminderSms(
+                        { name: student.userId.fullName || 'Student', phone },
+                        {
+                            amount: (fee.totalAmount || 0) - (fee.paidAmount || 0),
+                            feeType: fee.feeTypeId?.name || 'General Fee',
+                        }
+                    );
+                }
+                
                 sent++;
             } catch (err) {
-                console.error(`[Scheduler] Fee reminder failed for ${student.userId.email}:`, err.message);
+                console.error(`[Scheduler] Fee reminder failed for ${student.userId.email || phone}:`, err.message);
             }
         }
         console.log(`[Scheduler] Fee reminders: ${sent} sent out of ${overdueFees.length} overdue.`);
@@ -70,7 +87,11 @@ const runAttendanceWarnings = async () => {
         let sent = 0;
 
         for (const student of students) {
-            if (!student.userId?.email) continue;
+            if (!student.userId) continue;
+            
+            const preferences = student.userId.preferences || { emailNotifications: true, smsNotifications: false };
+            const phone = student.userId.phone;
+            
             try {
                 const [total, present] = await Promise.all([
                     Attendance.countDocuments({ student: student._id }),
@@ -81,18 +102,27 @@ const runAttendanceWarnings = async () => {
                 const pct = Math.round((present / total) * 100);
                 if (pct >= 75) continue; // Only warn students below threshold
 
-                await emailUtils.sendAttendanceWarningEmail(
-                    {
-                        name:   student.userId.fullName,
-                        email:  student.userId.email,
-                        rollNo: student.rollNo || '—',
-                        course: student.course || '—',
-                    },
-                    pct
-                );
+                if (student.userId.email && preferences.emailNotifications !== false) {
+                    await emailUtils.sendAttendanceWarningEmail(
+                        {
+                            name:   student.userId.fullName,
+                            email:  student.userId.email,
+                            rollNo: student.rollNo || '—',
+                            course: student.course || '—',
+                        },
+                        pct
+                    );
+                }
+                
+                if (phone && preferences.smsNotifications) {
+                    await smsUtils.sendAttendanceWarningSms(
+                        { name: student.userId.fullName, phone },
+                        pct
+                    );
+                }
                 sent++;
             } catch (err) {
-                console.error(`[Scheduler] Attendance warning failed for ${student.userId?.email}:`, err.message);
+                console.error(`[Scheduler] Attendance warning failed for ${student.userId?.email || phone}:`, err.message);
             }
         }
         console.log(`[Scheduler] Attendance warnings: ${sent} sent.`);

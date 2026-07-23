@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.authRefresh = exports.authLogin = exports.authRegister = void 0;
+exports.updatePreferences = exports.resetPassword = exports.authRefresh = exports.authLogin = exports.authRegister = void 0;
 const User_1 = require("../models/User");
 const Role_1 = require("../models/Role");
 const password_1 = require("../utils/password");
@@ -248,3 +248,46 @@ const resetPassword = async (req, res) => {
     }
 };
 exports.resetPassword = resetPassword;
+
+const updatePreferences = async (req, res) => {
+    try {
+        const userId = req.user?.id || req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const { phone, emailNotifications, smsNotifications } = req.body;
+
+        const user = await User_1.User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (phone !== undefined) user.phone = phone;
+        
+        if (user.preferences) {
+            if (emailNotifications !== undefined) user.preferences.emailNotifications = emailNotifications;
+            if (smsNotifications !== undefined) user.preferences.smsNotifications = smsNotifications;
+        } else {
+            user.preferences = {
+                emailNotifications: emailNotifications !== undefined ? emailNotifications : true,
+                smsNotifications: smsNotifications !== undefined ? smsNotifications : false
+            };
+        }
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Preferences updated successfully',
+            data: {
+                phone: user.phone,
+                preferences: user.preferences
+            }
+        });
+    } catch (error) {
+        console.error('[Auth] Update preferences error:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to update preferences' });
+    }
+};
+exports.updatePreferences = updatePreferences;

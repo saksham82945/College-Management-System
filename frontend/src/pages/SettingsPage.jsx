@@ -2,20 +2,43 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAuthStore } from '@/store/auth';
 import { useThemeStore } from '@/store/theme';
-import { Save, Bell, Moon, Sun, Globe } from 'lucide-react';
+import { Save, Bell, Moon, Sun, Globe, Smartphone, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '@/services/api';
 export const SettingsPage = () => {
-    const { user } = useAuthStore();
+    const { user, setUser } = useAuthStore();
     const { isDarkMode, toggleTheme } = useThemeStore();
-    const [notifications, setNotifications] = useState(true);
+    
+    // Get preferences from user state, with fallbacks
+    const prefs = user?.preferences || {};
+    const [emailNotifications, setEmailNotifications] = useState(prefs.emailNotifications !== false);
+    const [smsNotifications, setSmsNotifications] = useState(prefs.smsNotifications === true);
+    
     const [profile, setProfile] = useState({
         fullName: user?.fullName || '',
         email: user?.email || '',
-        phone: '9876543210'
+        phone: user?.phone || ''
     });
-    const handleSave = (e) => {
+
+    const handleSave = async (e) => {
         e.preventDefault();
-        toast.success('Settings saved successfully');
+        try {
+            const response = await api.put('/auth/preferences', {
+                phone: profile.phone,
+                emailNotifications,
+                smsNotifications
+            });
+            
+            // Update auth store with new data
+            if (response.data?.success && response.data?.data) {
+                const updatedUser = { ...user, phone: response.data.data.phone, preferences: response.data.data.preferences };
+                setUser(updatedUser);
+            }
+            
+            toast.success('Settings saved successfully');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to save settings');
+        }
     };
     return (<Layout>
             <div className="max-w-4xl mx-auto">
@@ -90,15 +113,30 @@ export const SettingsPage = () => {
                                 <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-emerald-50 text-emerald-600'}`}>
-                                            <Bell size={20}/>
+                                            <Mail size={20}/>
                                         </div>
                                         <div>
-                                            <p className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Communication</p>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Receive institutional updates</p>
+                                            <p className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Email Notifications</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Receive institutional updates via Email</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setNotifications(!notifications)} className={`w-12 h-6 rounded-full p-1 transition-colors ${notifications ? 'bg-emerald-500' : 'bg-gray-200'}`}>
-                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${notifications ? 'translate-x-6' : 'translate-x-0'}`}/>
+                                    <button onClick={() => setEmailNotifications(!emailNotifications)} className={`w-12 h-6 rounded-full p-1 transition-colors ${emailNotifications ? 'bg-emerald-500' : 'bg-gray-200'}`}>
+                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${emailNotifications ? 'translate-x-6' : 'translate-x-0'}`}/>
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-blue-50 text-blue-600'}`}>
+                                            <Smartphone size={20}/>
+                                        </div>
+                                        <div>
+                                            <p className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>SMS Notifications</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Receive important alerts via SMS</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setSmsNotifications(!smsNotifications)} className={`w-12 h-6 rounded-full p-1 transition-colors ${smsNotifications ? 'bg-blue-500' : 'bg-gray-200'}`}>
+                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${smsNotifications ? 'translate-x-6' : 'translate-x-0'}`}/>
                                     </button>
                                 </div>
 

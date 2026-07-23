@@ -35,4 +35,7 @@ router.get('/me', auth_2.authMiddleware, (req, res) => {
     });
 });
 
+// Update preferences
+router.put('/preferences', auth_2.authMiddleware, auth_1.updatePreferences);
+
 exports.default = router;

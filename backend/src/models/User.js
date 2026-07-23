@@ -35,6 +35,10 @@ const userSchema = new mongoose_1.default.Schema({
     lastLogin: {
         type: Date,
     },
+    preferences: {
+        emailNotifications: { type: Boolean, default: true },
+        smsNotifications: { type: Boolean, default: false }
+    },
     roleAssignments: [
         {
             roleId: {

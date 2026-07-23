@@ -171,7 +171,6 @@ const getFinancialReport = async (req, res) => {
     }
 };
 
-module.exports = { getAttendanceReport, getFinancialReport, exportAttendanceCSV, exportFinancialCSV, exportStudentsCSV };
 
 // ─── CSV helper ─────────────────────────────────────────────────────────────
 function toCSVRow(fields) {
@@ -298,3 +297,5 @@ const exportStudentsCSV = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to export student CSV' });
     }
 };
+
+module.exports = { getAttendanceReport, getFinancialReport, exportAttendanceCSV, exportFinancialCSV, exportStudentsCSV };

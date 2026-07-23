@@ -3,6 +3,9 @@ const Notification = require('../models/Notification');
 const { sendNotificationEmail } = require('../utils/email');
 
 
+const { sendNotificationSms } = require('../utils/sms');
+const User = require('../models/User').User;
+
 /** GET /api/v1/notifications */
 const getNotifications = async (req, res) => {
     try {
@@ -26,17 +29,36 @@ const getNotifications = async (req, res) => {
 /** POST /api/v1/notifications */
 const createNotification = async (req, res) => {
     try {
-        const { title, message, type, targetRole, sendEmail: dispatchEmail, targetEmail, targetName } = req.body;
+        const { title, message, type, targetRole, sendEmail: dispatchEmail, targetEmail, targetName, targetUserId } = req.body;
         if (!title || !message) return res.status(400).json({ message: 'title and message are required' });
 
-        const notification = await Notification.create({ title, message, type: type || 'INFO', targetRole });
+        const notification = await Notification.create({ title, message, type: type || 'INFO', targetRole, userId: targetUserId });
 
-        // Optional: dispatch email notification (non-blocking)
-        if (dispatchEmail && targetEmail) {
+        let userPreferences = { emailNotifications: true, smsNotifications: false };
+        let userPhone = null;
+        
+        if (targetUserId) {
+            const user = await User.findById(targetUserId);
+            if (user) {
+                userPreferences = user.preferences || userPreferences;
+                userPhone = user.phone;
+            }
+        }
+
+        // Dispatch email notification
+        if (dispatchEmail && targetEmail && userPreferences.emailNotifications) {
             sendNotificationEmail(
                 { fullName: targetName || 'Member', email: targetEmail },
                 { title, message, type: type || 'info' }
             ).catch(err => console.error('[Notification] Email dispatch failed:', err.message));
+        }
+        
+        // Dispatch SMS notification
+        if (userPreferences.smsNotifications && userPhone) {
+            sendNotificationSms(
+                { phone: userPhone },
+                { title, message }
+            ).catch(err => console.error('[Notification] SMS dispatch failed:', err.message));
         }
 
         res.status(201).json({ message: 'Notification created', data: notification });
