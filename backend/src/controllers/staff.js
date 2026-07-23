@@ -15,6 +15,15 @@ const createStaff = async (req, res) => {
     try {
         const { firstName, lastName, email, employeeId, role, department, joiningDate, salary, contactInfo } = req.body;
 
+        // Validation checks
+        if (!firstName || !lastName || !email || !employeeId || !role || !department || !joiningDate || !salary) {
+            throw new errors_1.AppError('All required fields (Name, Email, Employee ID, Role, Department, Joining Date, Salary) must be filled', 400);
+        }
+
+        if (joiningDate === '') {
+            throw new errors_1.AppError('Joining date is required', 400);
+        }
+
         // Check if user already exists
         const existingUser = await User_1.User.findOne({ email });
         if (existingUser) {
@@ -73,7 +82,9 @@ const createStaff = async (req, res) => {
             await User_1.User.deleteOne({ email: req.body.email }).catch(err => console.error('Rollback failed', err));
         }
 
-        if (error instanceof errors_1.AppError) {
+        if (error.name === 'ValidationError') {
+            res.status(400).json({ message: error.message });
+        } else if (error instanceof errors_1.AppError) {
             res.status(error.statusCode).json({ message: error.message });
         } else {
             console.error('Create Staff Error:', error);

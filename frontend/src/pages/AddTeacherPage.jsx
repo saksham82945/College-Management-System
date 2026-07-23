@@ -46,7 +46,7 @@ export const AddTeacherPage = () => {
         firstName: '',
         lastName: '',
         email: '',
-        password: 'teacher123',
+        password: 'Teacher@123',
         gender: 'male',
         dateOfBirth: '',
         phone: '',

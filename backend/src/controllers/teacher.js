@@ -10,12 +10,18 @@ const Teacher_1 = require("../models/Teacher");
 const bcryptjs_1 = __importDefault(require("bcrypt"));
 const errors_1 = require("../utils/errors");
 const createTeacher = async (req, res) => {
-    // Transaction removed for standalone support
-    // const session = await mongoose.startSession();
-    // session.startTransaction();
     try {
         const { firstName, lastName, email, employeeId, department, designation, qualification, experience, joiningDate, salary, contactInfo } = req.body;
         console.log('CREATE TEACHER BODY:', JSON.stringify(req.body, null, 2));
+
+        // Validation checks
+        if (!firstName || !lastName || !email || !employeeId || !department || !designation || !qualification || !joiningDate || !salary) {
+            throw new errors_1.AppError('All required fields (Name, Email, Employee ID, Department, Designation, Qualification, Joining Date, Salary) must be filled', 400);
+        }
+
+        if (joiningDate === '') {
+            throw new errors_1.AppError('Joining date is required', 400);
+        }
         // 1. Create User
         const existingUser = await User_1.User.findOne({ email });
         if (existingUser) {
@@ -81,8 +87,10 @@ const createTeacher = async (req, res) => {
         if (req.body.email && !isEmailExistsError) {
             await User_1.User.deleteOne({ email: req.body.email }).catch(err => console.error('Rollback failed', err));
         }
-        // await session.abortTransaction();
-        if (error instanceof errors_1.AppError) {
+        if (error.name === 'ValidationError') {
+            res.status(400).json({ message: error.message });
+        }
+        else if (error instanceof errors_1.AppError) {
             res.status(error.statusCode).json({ message: error.message });
         }
         else {
