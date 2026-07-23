@@ -5,7 +5,7 @@ import { apiClient } from '@/services/api';
 import toast from 'react-hot-toast';
 import {
     ChevronLeft, User, Mail, Phone, Calendar, Users,
-    GraduationCap, CreditCard, AlertTriangle, Trash2, TrendingUp, FileText, Download
+    GraduationCap, CreditCard, AlertTriangle, Trash2, TrendingUp, FileText, Download, ShieldCheck
 } from 'lucide-react';
 
 export const StudentDetailsPage = () => {
@@ -225,28 +225,41 @@ export const StudentDetailsPage = () => {
 
                     <div className="p-6">
                         {activeTab === 'profile' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                                        <User size={14} className="text-indigo-500" /> General Information
-                                    </h3>
-                                    <dl className="bg-gray-50 rounded-lg p-4">
-                                        {infoItem('Email', student.userId?.email)}
-                                        {infoItem('Phone', student.userId?.phone)}
-                                        {infoItem('Date of Birth', student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-IN') : null)}
-                                        {infoItem('Gender', student.gender ? student.gender.charAt(0).toUpperCase() + student.gender.slice(1) : null)}
-                                        {infoItem('Address', student.address?.city ? `${student.address.city}, ${student.address.state || ''}` : null)}
-                                    </dl>
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                                            <User size={14} className="text-indigo-500" /> General Information
+                                        </h3>
+                                        <dl className="bg-gray-50 rounded-lg p-4">
+                                            {infoItem('Email', student.userId?.email)}
+                                            {infoItem('Phone', student.userId?.phone)}
+                                            {infoItem('Date of Birth', student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-IN') : null)}
+                                            {infoItem('Gender', student.gender ? student.gender.charAt(0).toUpperCase() + student.gender.slice(1) : null)}
+                                            {infoItem('Address', student.address?.city ? `${student.address.city}, ${student.address.state || ''}` : null)}
+                                        </dl>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                                            <Users size={14} className="text-indigo-500" /> Guardian Information
+                                        </h3>
+                                        <dl className="bg-gray-50 rounded-lg p-4">
+                                            {infoItem("Father's Name", student.guardianInfo?.fatherName)}
+                                            {infoItem("Mother's Name", student.guardianInfo?.motherName)}
+                                            {infoItem("Guardian Phone", student.guardianInfo?.fatherPhone)}
+                                            {infoItem("Relation", student.guardianInfo?.relation)}
+                                        </dl>
+                                    </div>
                                 </div>
-                                <div>
+                                <div className="border-t border-gray-100 pt-6">
                                     <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                                        <Users size={14} className="text-indigo-500" /> Guardian Information
+                                        <ShieldCheck size={14} className="text-indigo-500" /> Account & Credentials
                                     </h3>
-                                    <dl className="bg-gray-50 rounded-lg p-4">
-                                        {infoItem("Father's Name", student.guardianInfo?.fatherName)}
-                                        {infoItem("Mother's Name", student.guardianInfo?.motherName)}
-                                        {infoItem("Guardian Phone", student.guardianInfo?.fatherPhone)}
-                                        {infoItem("Relation", student.guardianInfo?.relation)}
+                                    <dl className="bg-gray-50 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                                        {infoItem('Login Email', student.userId?.email)}
+                                        {infoItem('Account Status', student.userId?.status || 'active')}
+                                        {infoItem('Notification Settings', `Email: ${student.userId?.preferences?.emailNotifications ? 'Enabled' : 'Disabled'} / SMS: ${student.userId?.preferences?.smsNotifications ? 'Enabled' : 'Disabled'}`)}
+                                        {infoItem('Access Role', 'STUDENT')}
                                     </dl>
                                 </div>
                             </div>

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/services/api';
-import { Plus, Search, Users, Briefcase, Filter, ArrowRight, Wallet, Activity, ShieldCheck, Trash2 } from 'lucide-react';
+import { Plus, Search, Users, Briefcase, Filter, ArrowRight, Wallet, Activity, ShieldCheck, Trash2, Mail, Phone, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DataTable, PageHeader, Button, Input } from '@/components';
 import { useTheme } from '@/context/ThemeContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const StaffPage = () => {
     const navigate = useNavigate();
@@ -14,6 +14,7 @@ export const StaffPage = () => {
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStaff, setSelectedStaff] = useState(null);
 
     useEffect(() => {
         fetchStaff();
@@ -240,12 +241,146 @@ export const StaffPage = () => {
                             loading={loading}
                             emptyTitle="No staff found"
                             emptyDescription="Try adjusting your filters to find the staff member you are looking for."
-                            onRowClick={(row) => navigate(`/staff/${row._id}`)}
+                            onRowClick={(row) => setSelectedStaff(row)}
                         />
                     </motion.div>
                 </div>
             </div>
+
+            {/* Staff Details Modal */}
+            <AnimatePresence>
+                {selectedStaff && (
+                    <StaffDetailsModal 
+                        member={selectedStaff} 
+                        onClose={() => setSelectedStaff(null)} 
+                        roleTheme={roleTheme}
+                        isDarkMode={isDarkMode}
+                    />
+                )}
+            </AnimatePresence>
         </Layout>
     );
 };
+
+// ── StaffDetailsModal Component ───────────────────────────────────────────────
+const StaffDetailsModal = ({ member, onClose, roleTheme, isDarkMode }) => {
+    const name = member.userId?.fullName || 'Staff Profile';
+    const email = member.userId?.email || 'N/A';
+    const phone = member.contactInfo?.phone || member.userId?.phone || 'N/A';
+    const address = member.contactInfo?.address || 'N/A';
+    
+    // Net Salary calculation
+    const base = member.salary?.base || 0;
+    const allowances = member.salary?.allowances || 0;
+    const deductions = member.salary?.deductions || 0;
+    const netSalary = base + allowances - deductions;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            {/* Content Container */}
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className={`relative w-full max-w-2xl overflow-hidden rounded-[2.5rem] border shadow-2xl z-10
+                    ${isDarkMode 
+                        ? 'bg-slate-950 border-slate-800 text-white' 
+                        : 'bg-white border-slate-100 text-slate-900'}`}
+            >
+                {/* Header Band */}
+                <div className={`p-6 text-white bg-gradient-to-r ${roleTheme || 'from-indigo-600 to-purple-600'} flex items-start justify-between`}>
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center font-black text-2xl">
+                            {name.charAt(0)}
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black tracking-tight">{name}</h2>
+                            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-0.5">{member.role || 'Staff Member'}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose}
+                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    >
+                        <Trash2 size={16} className="rotate-45" /> {/* Close shape */}
+                    </button>
+                </div>
+                
+                {/* Scrollable details */}
+                <div className="p-8 max-h-[500px] overflow-y-auto space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Info Block 1 */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                                <Briefcase size={14} /> Employment & Tenure
+                            </h3>
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 space-y-2.5">
+                                <DetailRow label="Employee ID" value={member.employeeId} />
+                                <DetailRow label="Department" value={member.department} />
+                                <DetailRow label="Designation/Role" value={member.role} />
+                                <DetailRow label="Joining Date" value={member.joiningDate ? new Date(member.joiningDate).toLocaleDateString('en-IN') : 'N/A'} />
+                            </div>
+                        </div>
+
+                        {/* Info Block 2 */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                                <ShieldCheck size={14} /> Account Credentials
+                            </h3>
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 space-y-2.5">
+                                <DetailRow label="Login Email" value={email} />
+                                <DetailRow label="Account Status" value={member.status || 'active'} highlight />
+                                <DetailRow label="Access Role" value="STAFF" />
+                                <DetailRow label="Registered Date" value={member.createdAt ? new Date(member.createdAt).toLocaleDateString('en-IN') : 'N/A'} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Financial Block */}
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                            <Wallet size={14} /> Payroll & Salary
+                        </h3>
+                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-2 gap-y-2.5 gap-x-8">
+                            <DetailRow label="Base Salary" value={`₹${base.toLocaleString('en-IN')}`} />
+                            <DetailRow label="Allowances" value={`₹${allowances.toLocaleString('en-IN')}`} />
+                            <DetailRow label="Deductions" value={`₹${deductions.toLocaleString('en-IN')}`} />
+                            <div className="flex justify-between items-center text-xs py-1 border-t border-slate-200 dark:border-slate-800 md:col-span-2 pt-2">
+                                <span className="text-slate-400 font-bold">Net Salary</span>
+                                <span className="font-black text-emerald-500 text-sm">₹{netSalary.toLocaleString('en-IN')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contact Block */}
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                            <Phone size={14} /> Personal Contact
+                        </h3>
+                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 space-y-2.5">
+                            <DetailRow label="Phone Number" value={phone} />
+                            <DetailRow label="Address" value={address} />
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+const DetailRow = ({ label, value, highlight }) => (
+    <div className="flex justify-between items-center text-xs py-1">
+        <span className="text-slate-400 font-bold">{label}</span>
+        <span className={`font-black ${highlight ? 'text-success uppercase tracking-widest' : ''}`}>{value || '—'}</span>
+    </div>
+);
 

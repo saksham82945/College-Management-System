@@ -9,6 +9,7 @@ import { useTheme } from '@/context/ThemeContext';
 
 export const TeachersPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedTeacher, setSelectedTeacher] = useState(null);
     const navigate = useNavigate();
     const { isDarkMode, roleTheme } = useTheme();
     const { data: teachers, loading, remove } = useResource({ endpoint: '/teachers' });
@@ -96,7 +97,8 @@ export const TeachersPage = () => {
                                         initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
-                                        className="group relative"
+                                        className="group relative cursor-pointer"
+                                        onClick={() => setSelectedTeacher(teacher)}
                                     >
                                         <div className="absolute -inset-0.5 bg-gradient-to-br from-primary to-secondary rounded-[2.5rem] blur opacity-0 group-hover:opacity-20 transition duration-500" />
                                         <div className="relative glass-card rounded-[2.5rem] border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-2xl transition-all duration-500">
@@ -153,7 +155,10 @@ export const TeachersPage = () => {
                                                         variant="ghost" 
                                                         size="xs" 
                                                         className="!p-2"
-                                                        onClick={() => navigate(`/teachers/edit/${teacher._id}`)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/teachers/edit/${teacher._id}`);
+                                                        }}
                                                     >
                                                         <Edit2 size={14}/>
                                                     </Button>
@@ -161,7 +166,10 @@ export const TeachersPage = () => {
                                                         variant="ghost" 
                                                         size="xs" 
                                                         className="!p-2 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
-                                                        onClick={() => handleDelete(teacher._id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDelete(teacher._id);
+                                                        }}
                                                     >
                                                         <Trash2 size={14}/>
                                                     </Button>
@@ -175,7 +183,134 @@ export const TeachersPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* Teacher Details Modal */}
+            <AnimatePresence>
+                {selectedTeacher && (
+                    <TeacherDetailsModal 
+                        teacher={selectedTeacher} 
+                        onClose={() => setSelectedTeacher(null)} 
+                        roleTheme={roleTheme}
+                        isDarkMode={isDarkMode}
+                    />
+                )}
+            </AnimatePresence>
         </Layout>
     );
 };
+
+// ── TeacherDetailsModal Component ─────────────────────────────────────────────
+const TeacherDetailsModal = ({ teacher, onClose, roleTheme, isDarkMode }) => {
+    const name = teacher.userId?.fullName || 'Faculty Profile';
+    const email = teacher.userId?.email || 'N/A';
+    const phone = teacher.userId?.phone || 'N/A';
+    
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            {/* Content Container */}
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className={`relative w-full max-w-2xl overflow-hidden rounded-[2.5rem] border shadow-2xl z-10
+                    ${isDarkMode 
+                        ? 'bg-slate-950 border-slate-800 text-white' 
+                        : 'bg-white border-slate-100 text-slate-900'}`}
+            >
+                {/* Header Band */}
+                <div className={`p-6 text-white bg-gradient-to-r ${roleTheme || 'from-indigo-600 to-purple-600'} flex items-start justify-between`}>
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center font-black text-2xl">
+                            {name.charAt(0)}
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black tracking-tight">{name}</h2>
+                            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-0.5">{teacher.designation || 'Faculty Member'}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose}
+                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    >
+                        <Trash2 size={16} className="rotate-45" /> {/* Close shape */}
+                    </button>
+                </div>
+                
+                {/* Scrollable details */}
+                <div className="p-8 max-h-[500px] overflow-y-auto space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Info Block 1 */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                                <Award size={14} /> Academic & Tenure
+                            </h3>
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 space-y-2.5">
+                                <DetailRow label="Employee ID" value={teacher.employeeId} />
+                                <DetailRow label="Department" value={teacher.department} />
+                                <DetailRow label="Qualification" value={teacher.qualification} />
+                                <DetailRow label="Experience" value={`${teacher.experience || 0} Years`} />
+                            </div>
+                        </div>
+
+                        {/* Info Block 2 */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                                <ShieldCheck size={14} /> Account Credentials
+                            </h3>
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 space-y-2.5">
+                                <DetailRow label="Login Email" value={email} />
+                                <DetailRow label="Account Status" value={teacher.status || 'active'} highlight />
+                                <DetailRow label="Access Role" value="TEACHER" />
+                                <DetailRow label="Registered Date" value={teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString('en-IN') : 'N/A'} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contact & Address Block */}
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                            <Phone size={14} /> Contact Details
+                        </h3>
+                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8">
+                            <DetailRow label="Phone Number" value={phone} />
+                            <DetailRow label="Email Address" value={email} />
+                        </div>
+                    </div>
+
+                    {/* Subjects Block */}
+                    {teacher.subjects && teacher.subjects.length > 0 && (
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+                                <BookOpen size={14} /> Assigned Subjects
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {teacher.subjects.map((sub, idx) => (
+                                    <span key={idx} className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-xs font-bold tracking-tight">
+                                        {sub}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+const DetailRow = ({ label, value, highlight }) => (
+    <div className="flex justify-between items-center text-xs py-1">
+        <span className="text-slate-400 font-bold">{label}</span>
+        <span className={`font-black ${highlight ? 'text-success uppercase tracking-widest' : ''}`}>{value || '—'}</span>
+    </div>
+);
 
