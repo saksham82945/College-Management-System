@@ -55,5 +55,16 @@
     "mongodb-memory-server": "^11.0.1",
     "nodemon": "^3.0.1",
     "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/unit/**/*.test.js",
+      "**/tests/integration/**/*.test.js"
+    ],
+    "testTimeout": 30000,
+    "verbose": true,
+    "forceExit": true,
+    "detectOpenHandles": true
   }
 }
