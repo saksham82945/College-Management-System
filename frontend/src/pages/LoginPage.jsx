@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Lock, Mail, Shield, Eye, EyeOff, GraduationCap, 
     BookOpen, UserCircle, ArrowRight, Sparkles, Activity,
-    ChevronLeft, ShieldCheck, Zap, Play, FlaskConical
+    ChevronLeft, ShieldCheck, Zap, Play, FlaskConical, Briefcase
 } from 'lucide-react';
 
 // Demo credentials for each role
@@ -16,6 +16,7 @@ const DEMO_CREDENTIALS = {
     ADMIN:   { email: 'admin@college.com',   password: 'admin123'   },
     TEACHER: { email: 'teacher@college.com', password: 'teacher123' },
     STUDENT: { email: 'student@college.com', password: 'student123' },
+    STAFF:   { email: 'staff@college.com',   password: 'staff123'   },
 };
 
 export const LoginPage = () => {
@@ -35,6 +36,7 @@ export const LoginPage = () => {
         { id: 'ADMIN', title: 'Admin', icon: Shield, color: 'from-purple-500 to-indigo-600', description: 'Administration' },
         { id: 'TEACHER', title: 'Teacher', icon: BookOpen, color: 'from-sky-500 to-cyan-600', description: 'Faculty & Academics' },
         { id: 'STUDENT', title: 'Student', icon: GraduationCap, color: 'from-emerald-500 to-cyan-500', description: 'Student Portal' },
+        { id: 'STAFF', title: 'Staff', icon: Briefcase, color: 'from-pink-500 to-rose-600', description: 'Support Services' },
     ];
 
     const activeRoleData = roles.find(r => r.id === selectedRole);
@@ -456,6 +458,7 @@ export const LoginPage = () => {
                                     { role: 'Admin',   email: 'admin@college.com',   pass: 'admin123',   color: 'bg-purple-500' },
                                     { role: 'Teacher', email: 'teacher@college.com', pass: 'teacher123', color: 'bg-sky-500' },
                                     { role: 'Student', email: 'student@college.com', pass: 'student123', color: 'bg-emerald-500' },
+                                    { role: 'Staff',   email: 'staff@college.com',   pass: 'staff123',   color: 'bg-pink-500' },
                                 ].map(d => (
                                     <div key={d.role} className="flex items-center gap-3">
                                         <div className={`w-2 h-2 rounded-full ${d.color} flex-shrink-0`} />

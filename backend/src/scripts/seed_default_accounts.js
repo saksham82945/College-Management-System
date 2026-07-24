@@ -12,12 +12,14 @@ const { User } = require('../models/User');
 const { Role } = require('../models/Role');
 const { Student } = require('../models/Student');
 const { Teacher } = require('../models/Teacher');
+const { Staff } = require('../models/Staff');
 const { Organization } = require('../models/Organization');
 
 const DEFAULT_ACCOUNTS = [
     { email: 'admin@college.com',   password: 'admin123',   fullName: 'System Admin',    role: 'ADMIN',   phone: '0000000000' },
     { email: 'teacher@college.com', password: 'teacher123', fullName: 'Default Teacher', role: 'TEACHER', phone: '1111111111' },
     { email: 'student@college.com', password: 'student123', fullName: 'Default Student', role: 'STUDENT', phone: '2222222222' },
+    { email: 'staff@college.com',   password: 'staff123',   fullName: 'Default Staff',   role: 'STAFF',   phone: '3333333333' },
 ];
 
 async function ensureRoles() {
@@ -110,6 +112,22 @@ async function ensureTeacherProfile(userId, tenantId) {
     });
 }
 
+async function ensureStaffProfile(userId, tenantId) {
+    const existing = await Staff.findOne({ userId });
+    if (existing) return;
+    await Staff.create({
+        userId,
+        tenantId,
+        employeeId: 'STF-DEFAULT-001',
+        role: 'Office Staff',
+        department: 'Administration',
+        joiningDate: new Date('2024-01-01'),
+        salary: { base: 35000, allowances: 5000, deductions: 1500 },
+        status: 'active',
+        contactInfo: { phone: '3333333333', address: 'Campus Office' },
+    });
+}
+
 async function main() {
     await mongoose.connect(MONGO_URI);
     console.log('🔗 Connected to PRODUCTION MongoDB\n');
@@ -122,6 +140,7 @@ async function main() {
         const user = await upsertUser(account, roleId, tenantId);
         if (account.role === 'STUDENT') await ensureStudentProfile(user._id, tenantId);
         if (account.role === 'TEACHER') await ensureTeacherProfile(user._id, tenantId);
+        if (account.role === 'STAFF') await ensureStaffProfile(user._id, tenantId);
     }
 
     console.log('\n========================================');
