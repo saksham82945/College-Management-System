@@ -12,6 +12,7 @@ const { User } = require('../models/User');
 const { Role } = require('../models/Role');
 const { Student } = require('../models/Student');
 const { Teacher } = require('../models/Teacher');
+const { Organization } = require('../models/Organization');
 
 const DEFAULT_ACCOUNTS = [
     { email: 'admin@college.com',   password: 'admin123',   fullName: 'System Admin',    role: 'ADMIN',   phone: '0000000000' },
@@ -31,7 +32,22 @@ async function ensureRoles() {
     return roleMap;
 }
 
-async function upsertUser(account, roleId) {
+async function ensureOrganization() {
+    let org = await Organization.findOne({ subdomain: 'default' });
+    if (!org) {
+        org = await Organization.create({
+            name: 'Default College',
+            subdomain: 'default',
+            status: 'active'
+        });
+        console.log('✅ Created default organization');
+    } else {
+        console.log('✅ Organization exists');
+    }
+    return org._id;
+}
+
+async function upsertUser(account, roleId, tenantId) {
     const hashed = await bcrypt.hash(account.password, 10);
     let user = await User.findOne({ email: account.email });
     if (user) {
@@ -39,6 +55,7 @@ async function upsertUser(account, roleId) {
         user.password = hashed;
         user.status = 'active';
         user.fullName = account.fullName;
+        user.tenantId = tenantId;
         const hasRole = user.roleAssignments.some(ra => ra.roleId.toString() === roleId.toString());
         if (!hasRole) user.roleAssignments.push({ roleId, assignedAt: new Date() });
         await user.save();
@@ -50,6 +67,7 @@ async function upsertUser(account, roleId) {
             fullName: account.fullName,
             phone: account.phone,
             status: 'active',
+            tenantId,
             roleAssignments: [{ roleId, assignedAt: new Date() }],
         });
         console.log(`✅ Created:  ${account.email} | Password: ${account.password}`);
@@ -57,11 +75,12 @@ async function upsertUser(account, roleId) {
     return user;
 }
 
-async function ensureStudentProfile(userId) {
+async function ensureStudentProfile(userId, tenantId) {
     const existing = await Student.findOne({ userId });
     if (existing) return;
     await Student.create({
         userId,
+        tenantId,
         rollNo: 'STU-DEFAULT-001',
         course: 'B.Tech Computer Science',
         semester: '1',
@@ -73,11 +92,12 @@ async function ensureStudentProfile(userId) {
     });
 }
 
-async function ensureTeacherProfile(userId) {
+async function ensureTeacherProfile(userId, tenantId) {
     const existing = await Teacher.findOne({ userId });
     if (existing) return;
     await Teacher.create({
         userId,
+        tenantId,
         employeeId: 'TCH-DEFAULT-001',
         department: 'General',
         designation: 'Lecturer',
@@ -94,13 +114,14 @@ async function main() {
     await mongoose.connect(MONGO_URI);
     console.log('🔗 Connected to PRODUCTION MongoDB\n');
 
+    const tenantId = await ensureOrganization();
     const roleMap = await ensureRoles();
 
     for (const account of DEFAULT_ACCOUNTS) {
         const roleId = roleMap[account.role];
-        const user = await upsertUser(account, roleId);
-        if (account.role === 'STUDENT') await ensureStudentProfile(user._id);
-        if (account.role === 'TEACHER') await ensureTeacherProfile(user._id);
+        const user = await upsertUser(account, roleId, tenantId);
+        if (account.role === 'STUDENT') await ensureStudentProfile(user._id, tenantId);
+        if (account.role === 'TEACHER') await ensureTeacherProfile(user._id, tenantId);
     }
 
     console.log('\n========================================');
