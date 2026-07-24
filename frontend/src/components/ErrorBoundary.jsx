@@ -14,6 +14,25 @@ class ErrorBoundaryClass extends React.Component {
 
     componentDidCatch(error, info) {
         console.error('ErrorBoundary caught:', error, info);
+        
+        // Auto-reload on chunk load errors
+        const errorText = error?.message || '';
+        const isChunkError = 
+            errorText.includes('Failed to fetch dynamically imported module') ||
+            errorText.includes('Loading chunk') ||
+            errorText.includes('loading css chunk') ||
+            errorText.includes('dynamically imported module');
+
+        if (isChunkError) {
+            const lastReloaded = sessionStorage.getItem('last_chunk_reload');
+            const now = Date.now();
+            // Prevent infinite reload loops by limiting to once every 10 seconds
+            if (!lastReloaded || now - parseInt(lastReloaded, 10) > 10000) {
+                sessionStorage.setItem('last_chunk_reload', now.toString());
+                console.warn('Chunk load error detected, auto-reloading page to fetch latest version...');
+                window.location.reload();
+            }
+        }
     }
 
     reset() {
@@ -46,6 +65,11 @@ function ErrorFallback({ error, onReset }) {
         navigate('/dashboard');
     };
 
+    const handleRefresh = () => {
+        onReset();
+        window.location.reload();
+    };
+
     return (
         <div className="min-h-[60vh] flex items-center justify-center p-8">
             <div className="max-w-md w-full text-center">
@@ -54,25 +78,31 @@ function ErrorFallback({ error, onReset }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                     </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Something went wrong</h2>
-                <p className="text-gray-500 mb-2 text-sm">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Something went wrong</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">
                     This page encountered an error. Other sections of the app are unaffected.
                 </p>
                 {error?.message && (
-                    <code className="block bg-gray-100 text-red-600 text-xs rounded-lg p-3 mb-6 text-left overflow-auto">
+                    <code className="block bg-gray-100 dark:bg-slate-900 text-red-600 dark:text-rose-400 text-xs rounded-lg p-3 mb-6 text-left overflow-auto">
                         {error.message}
                     </code>
                 )}
-                <div className="flex gap-3 justify-center">
+                <div className="flex flex-wrap gap-3 justify-center">
                     <button
                         onClick={handleBack}
-                        className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                        className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-350 hover:bg-gray-50 dark:hover:bg-slate-900 font-medium transition-colors"
                     >
                         ← Go Back
                     </button>
                     <button
+                        onClick={handleRefresh}
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:shadow-lg transition-all"
+                    >
+                        Refresh Page
+                    </button>
+                    <button
                         onClick={handleHome}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium hover:shadow-lg transition-all"
+                        className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-350 hover:bg-gray-50 dark:hover:bg-slate-900 font-medium transition-colors"
                     >
                         Go to Dashboard
                     </button>
