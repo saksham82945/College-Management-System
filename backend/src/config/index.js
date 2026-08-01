@@ -67,7 +67,7 @@ exports.config = {
         secret: process.env.JWT_SECRET || 'your-secret-key',
         refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
         expiresIn: process.env.JWT_EXPIRE || '24h',
-        refreshExpiresIn: process.env.JWT_REFRESH_EXPIRE || '7d',
+        refreshExpiresIn: process.env.JWT_REFRESH_EXPIRE || '90d',
     },
     // ── PII Encryption at Rest ────────────────────────────────────────────────
     // Must be a 32-byte (256-bit) hex string.
