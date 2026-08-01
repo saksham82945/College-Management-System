@@ -1,0 +1,22 @@
+# robots.txt for College Management System
+# https://college-management-system-frontend-u7s6.onrender.com/
+
+User-agent: *
+
+# Allow public pages
+Allow: /
+Allow: /login
+
+# Disallow private/authenticated routes — Google should not crawl these
+Disallow: /dashboard
+Disallow: /students
+Disallow: /teachers
+Disallow: /payroll
+Disallow: /finance
+Disallow: /attendance
+Disallow: /reports
+Disallow: /settings
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://college-management-system-frontend-u7s6.onrender.com/sitemap.xml
