@@ -62,7 +62,7 @@ const NotificationDropdown = ({ onClose }) => {
                             <CheckCheck size={13} /> Mark all read
                         </button>
                     )}
-                    <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600">
+                    <button onClick={onClose} aria-label="Close notifications" className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 min-w-[44px] min-h-[44px] flex items-center justify-center">
                         <X size={14} />
                     </button>
                 </div>
@@ -121,7 +121,8 @@ const NotificationDropdown = ({ onClose }) => {
                                 </div>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); deleteNotification(notif._id); }}
-                                    className="p-1 rounded-lg opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0"
+                                    aria-label="Delete notification"
+                                    className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0 min-w-[32px] min-h-[32px] flex items-center justify-center"
                                 >
                                     <Trash2 size={12} />
                                 </button>
@@ -177,7 +178,8 @@ export const Header = ({ toggleMobileMenu }) => {
                     {/* Mobile Hamburger Button */}
                     <button
                         onClick={toggleMobileMenu}
-                        className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-primary md:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        aria-label="Open navigation menu"
+                        className="p-2.5 -ml-2 rounded-xl text-slate-500 hover:text-primary md:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                         <Menu size={20} />
                     </button>
@@ -191,7 +193,8 @@ export const Header = ({ toggleMobileMenu }) => {
                     <motion.button
                         whileTap={{ rotate: 180, scale: 0.8 }}
                         onClick={toggleDarkMode}
-                        className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative group"
+                        aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                        className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative group min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                         {isDarkMode ? (
                             <Sun size={20} className="text-amber-400" />
@@ -208,7 +211,9 @@ export const Header = ({ toggleMobileMenu }) => {
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={() => { setIsNotifOpen(v => !v); setIsProfileOpen(false); }}
-                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+                            aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+                            aria-expanded={isNotifOpen}
+                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
                             <Bell size={20} />
                             {unreadCount > 0 && (

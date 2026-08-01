@@ -98,6 +98,8 @@ export const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => hasChildren ? toggleMenu(item.label) : navigate(item.path)}
+                    aria-label={item.label}
+                    aria-current={active ? 'page' : undefined}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative group
                         ${active 
                             ? `bg-gradient-to-r ${roleTheme} text-white shadow-lg shadow-primary/20` 
@@ -196,7 +198,8 @@ export const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                     {!isMobile && (
                         <button 
                             onClick={() => setCollapsed(!collapsed)}
-                            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary transition-all shadow-sm"
+                            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                            className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary transition-all shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
                             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                         </button>
@@ -217,6 +220,7 @@ export const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                 <div className="p-4 border-t border-slate-100 dark:border-slate-800">
                     <button 
                         onClick={() => navigate('/')}
+                        aria-label="Go to main site"
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mb-1
                             ${collapsed && !isMobile ? 'justify-center px-0 w-12 mx-auto' : ''}
                         `}
@@ -226,6 +230,7 @@ export const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                     </button>
                     <button 
                         onClick={() => { logout(); navigate('/login'); }}
+                        aria-label="Sign out"
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-danger/10 transition-all
                             ${collapsed && !isMobile ? 'justify-center px-0 w-12 mx-auto' : ''}
                         `}
