@@ -6,7 +6,7 @@ import { apiClient } from '@/services/api';
 import { 
     BookOpen, CreditCard, Calendar, CheckCircle, TrendingUp, 
     Clock, Award, AlertCircle, Sparkles, ChevronRight, ArrowRight,
-    User, GraduationCap, ShieldCheck, Mail, Activity
+    User, GraduationCap, ShieldCheck, Mail, Activity, Video
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -270,12 +270,13 @@ export const StudentDashboard = () => {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                     {[
                         { label: 'Timetable', icon: Calendar, color: 'from-purple-500 to-indigo-600', path: '/timetable' },
                         { label: 'Attendance', icon: CheckCircle, color: 'from-emerald-500 to-teal-600', path: '/attendance' },
                         { label: 'Fees', icon: CreditCard, color: 'from-orange-500 to-amber-600', path: '/fees' },
                         { label: 'Grades', icon: Award, color: 'from-sky-500 to-blue-600', path: '/grades' },
+                        { label: 'Online Class', icon: Video, color: 'from-pink-500 to-rose-600', path: '/online-class' },
                     ].map(a => (
                         <QuickAction
                             key={a.label}

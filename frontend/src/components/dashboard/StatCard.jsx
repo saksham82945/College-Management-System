@@ -2,14 +2,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
 
-export const StatCard = ({ title, value, icon: Icon, color, bg, trend }) => {
+export const StatCard = ({ title, value, icon: Icon, color, bg, trend, onClick, ...props }) => {
     const { isDarkMode } = useTheme();
 
     return (
         <motion.div 
+            onClick={onClick}
+            {...props}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className={`p-7 rounded-[2.5rem] relative overflow-hidden group border transition-all duration-500
+            className={`p-7 rounded-[2.5rem] relative overflow-hidden group border transition-all duration-500 cursor-pointer
                 ${isDarkMode 
                     ? 'bg-slate-900/60 border-slate-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] hover:bg-slate-900 shadow-black/40' 
                     : 'bg-white border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-300'}`}

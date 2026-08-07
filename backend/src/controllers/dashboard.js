@@ -57,6 +57,22 @@ const getAdminDashboardStats = async (req, res) => {
         const presentRecords = attendanceStats?.presentRecords || 0;
         const absentRecords = attendanceStats?.absentRecords || 0;
 
+        const attendanceTrend = await Attendance.aggregate([
+            { $match: { date: { $gte: sixMonthsAgo } } },
+            { $group: { 
+                _id: { month: { $month: "$date" }, year: { $year: "$date" } }, 
+                total: { $sum: 1 }, 
+                present: { $sum: { $cond: [{ $eq: ["$status", "PRESENT"] }, 1, 0] } } 
+            } },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]).catch(() => []);
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const attendanceTrendData = attendanceTrend.map(item => ({
+            name: monthNames[item._id.month - 1],
+            attendancePct: item.total > 0 ? Math.round((item.present / item.total) * 100) : 0
+        }));
+
         res.status(200).json({
             success: true,
             data: {
@@ -71,7 +87,8 @@ const getAdminDashboardStats = async (req, res) => {
                     presentPct: totalRecords > 0 ? Math.round((presentRecords / totalRecords) * 100) : 0
                 },
                 recentAdmissions: recentStudents,
-                chartData
+                chartData,
+                attendanceTrendData
             }
         });
     } catch (error) {

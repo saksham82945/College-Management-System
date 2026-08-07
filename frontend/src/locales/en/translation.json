@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "College Management System",
+    "dashboard": "Dashboard",
+    "students": "Students",
+    "teachers": "Teachers",
+    "finance": "Finance",
+    "attendance": "Attendance",
+    "exams": "Exams",
+    "onlineClasses": "Online Classes",
+    "proctoredExam": "Proctored Exam",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {{name}}!",
+    "totalStudents": "Total Students",
+    "totalTeachers": "Total Teachers",
+    "revenue": "Revenue",
+    "averageAttendance": "Average Attendance"
+  }
+}

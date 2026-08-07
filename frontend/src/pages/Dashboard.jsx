@@ -18,6 +18,7 @@ import { StudentDashboard } from '@/pages/StudentDashboard';
 import { TeacherDashboard } from '@/pages/TeacherDashboard';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { PageHeader } from '@/components/PageHeader';
+import { useTranslation } from 'react-i18next';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -32,6 +33,7 @@ const itemVariants = {
 import { useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const { isDarkMode, roleTheme } = useTheme();
@@ -41,6 +43,7 @@ export const Dashboard = () => {
     if (role === 'STUDENT') return <StudentDashboard />;
     if (role === 'TEACHER') return <TeacherDashboard />;
 
+
     const [stats, setStats] = useState({
         totalStudents: 0,
         totalTeachers: 0,
@@ -48,7 +51,8 @@ export const Dashboard = () => {
         pendingFees: 0,
         attendance: { total: 0, present: 0, absent: 0, presentPct: 0 },
         recentAdmissions: [],
-        chartData: []
+        chartData: [],
+        attendanceTrendData: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -134,7 +138,7 @@ export const Dashboard = () => {
                 {/* Overview Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     <StatCard 
-                        title="Total Students" 
+                        title={t('dashboard.totalStudents', 'Total Students')} 
                         value={stats.totalStudents} 
                         icon={Users} 
                         color="text-indigo-500" 
@@ -143,7 +147,7 @@ export const Dashboard = () => {
                         onClick={() => navigate('/students')}
                     />
                     <StatCard 
-                        title="Total Teachers" 
+                        title={t('dashboard.totalTeachers', 'Total Teachers')} 
                         value={stats.totalTeachers} 
                         icon={GraduationCap} 
                         color="text-sky-500" 
@@ -390,6 +394,44 @@ export const Dashboard = () => {
                                     <Bar dataKey="revenue" name="Revenue (₹)" fill="var(--primary)" radius={[8, 8, 0, 0]} maxBarSize={40} />
                                     <Bar dataKey="students" name="Students" fill="#10b981" radius={[8, 8, 0, 0]} maxBarSize={40} />
                                 </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </motion.div>
+                )}
+                {/* Attendance Trend Chart */}
+                {stats.attendanceTrendData?.length > 0 && (
+                    <motion.div variants={itemVariants} className={`p-10 rounded-[3rem] border glass-card mt-8 ${
+                        isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50'
+                    }`}>
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Attendance Trend</h2>
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-1">Average attendance percentage over time</p>
+                            </div>
+                        </div>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={stats.attendanceTrendData}>
+                                    <defs>
+                                        <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#1e293b' : '#f1f5f9'} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 10, fontWeight: 800 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 10, fontWeight: 800 }} />
+                                    <Tooltip
+                                        cursor={{ stroke: '#f59e0b', strokeWidth: 2, strokeDasharray: '5 5' }}
+                                        contentStyle={{
+                                            backgroundColor: isDarkMode ? '#0f172a' : '#fff',
+                                            border: isDarkMode ? '1px solid #1e293b' : '1px solid #f1f5f9',
+                                            borderRadius: '16px',
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                                        }}
+                                    />
+                                    <Area type="monotone" dataKey="attendancePct" name="Attendance (%)" stroke="#f59e0b" strokeWidth={4} fillOpacity={1} fill="url(#colorAttendance)" activeDot={{ r: 8 }} />
+                                </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </motion.div>

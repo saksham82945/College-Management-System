@@ -60,6 +60,49 @@ const sendSms = async ({ to, body }) => {
     }
 };
 
+// ─── Base WhatsApp send function ──────────────────────────────────────────────
+const sendWhatsApp = async ({ to, body }) => {
+    if (!to) {
+        console.log(`[WhatsApp] Skipped (No phone number provided). Message: ${body}`);
+        return { skipped: true };
+    }
+
+    const client = getTwilioClient();
+    const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER || process.env.TWILIO_PHONE_NUMBER;
+    const from = fromNumber ? `whatsapp:${fromNumber}` : `whatsapp:+14155238886`; // Default Twilio sandbox number
+
+    // Formatting phone number
+    let formattedTo = to.replace(/\D/g, '');
+    if (formattedTo.length === 10) {
+        formattedTo = `+91${formattedTo}`;
+    } else if (!to.startsWith('+')) {
+        formattedTo = `+${formattedTo}`;
+    } else {
+        formattedTo = to;
+    }
+    const whatsAppTo = `whatsapp:${formattedTo}`;
+
+    if (!client) {
+        // Mock mode
+        console.log(`[WhatsApp MOCK] Would have sent WhatsApp to ${whatsAppTo}`);
+        console.log(`[WhatsApp MOCK] Body: ${body}`);
+        return { mock: true, to: whatsAppTo, body };
+    }
+
+    try {
+        const message = await client.messages.create({
+            body,
+            from,
+            to: whatsAppTo
+        });
+        console.log(`[WhatsApp] Sent → ${whatsAppTo} (${message.sid})`);
+        return message;
+    } catch (err) {
+        console.error(`[WhatsApp] Failed → ${whatsAppTo}: ${err.message}`);
+        throw err;
+    }
+};
+
 // ─── Pre-defined SMS Templates ────────────────────────────────────────────────
 
 const sendFeeReminderSms = async (student, feeInfo) => {
@@ -87,9 +130,38 @@ const sendNotificationSms = async (user, notification) => {
     return sendSms({ to: phone, body });
 };
 
+// ─── WhatsApp Templates ───────────────────────────────────────────────────────
+
+const sendFeeReminderWhatsApp = async (student, feeInfo) => {
+    const { name, phone } = student;
+    const { amount, feeType } = feeInfo;
+    const formattedAmount = `Rs.${Number(amount || 0).toLocaleString('en-IN')}`;
+    
+    const body = `*Fee Reminder*\nDear ${name}, a fee of *${formattedAmount}* for ${feeType || 'General Fee'} is pending. Please pay at the earliest to avoid late fees.\n\nRegards,\n${COLLEGE_NAME}`;
+    return sendWhatsApp({ to: phone, body });
+};
+
+const sendAttendanceWarningWhatsApp = async (student, attendancePct) => {
+    const { name, phone } = student;
+    const body = `🚨 *Attendance Warning*\nDear ${name}, your attendance is critically low at *${attendancePct}%*. It must be above 75%.\n\nPlease contact the administration immediately to avoid being barred from exams.\n\nRegards,\n${COLLEGE_NAME}`;
+    return sendWhatsApp({ to: phone, body });
+};
+
+const sendNotificationWhatsApp = async (user, notification) => {
+    const { phone } = user;
+    const { title, message } = notification;
+    
+    const body = `*${title}*\n${message}\n\n- ${COLLEGE_NAME}`;
+    return sendWhatsApp({ to: phone, body });
+};
+
 module.exports = {
     sendSms,
     sendFeeReminderSms,
     sendAttendanceWarningSms,
-    sendNotificationSms
+    sendNotificationSms,
+    sendWhatsApp,
+    sendFeeReminderWhatsApp,
+    sendAttendanceWarningWhatsApp,
+    sendNotificationWhatsApp
 };

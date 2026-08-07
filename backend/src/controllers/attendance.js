@@ -76,6 +76,32 @@ const markAttendanceBulk = async (req, res) => {
         }));
 
         const saved = await Attendance.insertMany(docs);
+
+        // Check attendance and send warnings asynchronously
+        (async () => {
+            const emailUtils = require('../utils/email');
+            const smsUtils = require('../utils/sms');
+            
+            for (const r of records) {
+                if (r.status === 'ABSENT') {
+                    const total = await Attendance.countDocuments({ student: r.studentId });
+                    const present = await Attendance.countDocuments({ student: r.studentId, status: 'PRESENT' });
+                    const pct = total > 0 ? (present / total) * 100 : 0;
+                    
+                    if (pct < 75) {
+                        const student = await Student.findById(r.studentId).populate('userId');
+                        if (student && student.userId) {
+                            const user = student.userId;
+                            const notifyData = { name: user.fullName, email: user.email, phone: user.phone, rollNo: student.rollNo, course: student.course };
+                            emailUtils.sendAttendanceWarningEmail(notifyData, pct.toFixed(1)).catch(e=>console.error(e));
+                            smsUtils.sendAttendanceWarningSms(notifyData, pct.toFixed(1)).catch(e=>console.error(e));
+                            smsUtils.sendAttendanceWarningWhatsApp(notifyData, pct.toFixed(1)).catch(e=>console.error(e));
+                        }
+                    }
+                }
+            }
+        })().catch(e => console.error('Bulk attendance warning error:', e));
+
         res.status(201).json({ message: 'Attendance marked successfully', count: saved.length });
     } catch (err) {
         console.error('markAttendanceBulk error:', err);
@@ -103,6 +129,27 @@ const markAttendance = async (req, res) => {
             markedBy: req.user?.userId,
             remarks: remarks || ''
         });
+
+        if (status === 'ABSENT') {
+            (async () => {
+                const emailUtils = require('../utils/email');
+                const smsUtils = require('../utils/sms');
+                const total = await Attendance.countDocuments({ student: studentId });
+                const present = await Attendance.countDocuments({ student: studentId, status: 'PRESENT' });
+                const pct = total > 0 ? (present / total) * 100 : 0;
+                
+                if (pct < 75) {
+                    const student = await Student.findById(studentId).populate('userId');
+                    if (student && student.userId) {
+                        const user = student.userId;
+                        const notifyData = { name: user.fullName, email: user.email, phone: user.phone, rollNo: student.rollNo, course: student.course };
+                        emailUtils.sendAttendanceWarningEmail(notifyData, pct.toFixed(1)).catch(e=>console.error(e));
+                        smsUtils.sendAttendanceWarningSms(notifyData, pct.toFixed(1)).catch(e=>console.error(e));
+                        smsUtils.sendAttendanceWarningWhatsApp(notifyData, pct.toFixed(1)).catch(e=>console.error(e));
+                    }
+                }
+            })().catch(e => console.error('Single attendance warning error:', e));
+        }
 
         res.status(201).json({ message: 'Attendance recorded', data: record });
     } catch (err) {

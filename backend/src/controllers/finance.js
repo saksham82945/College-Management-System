@@ -9,6 +9,8 @@ const uuid_1 = require("uuid");
 const FeeType_1 = require("../models/FeeType");
 const Student_1 = require("../models/Student");
 const pdf_1 = require("../utils/pdf");
+const email_1 = require("../utils/email");
+const sms_1 = require("../utils/sms");
 const getStudentFees = async (req, res) => {
     try {
         const { studentId } = req.params;
@@ -175,7 +177,7 @@ const assignFeeToClass = async (req, res) => {
         const feeType = await FeeType_1.FeeType.findById(feeTypeId);
         if (!feeType)
             throw new errors_1.AppError('Fee Type not found', 404, 'NOT_FOUND');
-        const students = await Student_1.Student.find({ classId, status: 'active' });
+        const students = await Student_1.Student.find({ classId, status: 'active' }).populate('userId');
         const feeRecords = students.map(student => ({
             studentId: student._id,
             feeTypeId,
@@ -185,6 +187,19 @@ const assignFeeToClass = async (req, res) => {
         }));
         if (feeRecords.length > 0) {
             await StudentFee_1.StudentFee.insertMany(feeRecords);
+            
+            // Send notifications asynchronously
+            students.forEach(student => {
+                const user = student.userId;
+                if (user) {
+                    const notifyData = { name: user.fullName, email: user.email, phone: user.phone, rollNo: student.rollNo };
+                    const feeInfo = { amount: feeType.amount, dueDate, feeType: feeType.name };
+                    
+                    email_1.sendFeeReminderEmail(notifyData, feeInfo).catch(err => console.error(err));
+                    sms_1.sendFeeReminderSms(notifyData, feeInfo).catch(err => console.error(err));
+                    sms_1.sendFeeReminderWhatsApp(notifyData, feeInfo).catch(err => console.error(err));
+                }
+            });
         }
         res.json({ success: true, message: `Assigned fee to ${feeRecords.length} students` });
     }

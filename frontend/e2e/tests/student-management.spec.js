@@ -3,11 +3,11 @@ import { test, expect } from '@playwright/test';
 test.describe('Student Management - E2E', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/login');
-        await page.getByRole('button', { name: /Administrator/i }).click();
-        await page.getByPlaceholder(/name@college.edu/i).fill('admin@lnmcollege.com');
-        await page.getByPlaceholder(/••••••••/i).fill('admin123');
+        await page.getByText(/Admin Portal/i).first().click();
+        await page.getByPlaceholder(/user@lnmi.ac.in/i).fill('admin@lnmi.in');
+        await page.getByPlaceholder(/••••••••/i).fill('Admin@123');
         await page.getByRole('button', { name: /Sign In/i }).click();
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+        await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 10000 });
     });
 
     test('should view students list', async ({ page }) => {
@@ -120,11 +120,11 @@ test.describe('Student Management - E2E', () => {
 test.describe('Student Form Validation', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/login');
-        await page.getByRole('button', { name: /Administrator/i }).click();
-        await page.getByPlaceholder(/name@college.edu/i).fill('admin@lnmcollege.com');
-        await page.getByPlaceholder(/••••••••/i).fill('admin123');
+        await page.getByText(/Admin Portal/i).first().click();
+        await page.getByPlaceholder(/user@lnmi.ac.in/i).fill('admin@lnmi.in');
+        await page.getByPlaceholder(/••••••••/i).fill('Admin@123');
         await page.getByRole('button', { name: /Sign In/i }).click();
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+        await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 10000 });
         await page.goto('/students');
     });
 

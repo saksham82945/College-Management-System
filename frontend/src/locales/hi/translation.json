@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "कॉलेज प्रबंधन प्रणाली",
+    "dashboard": "डैशबोर्ड",
+    "students": "छात्र",
+    "teachers": "शिक्षक",
+    "finance": "वित्त",
+    "attendance": "उपस्थिति",
+    "exams": "परीक्षा",
+    "onlineClasses": "ऑनलाइन कक्षाएं",
+    "proctoredExam": "प्रॉक्टर्ड परीक्षा",
+    "settings": "सेटिंग्स",
+    "logout": "लॉग आउट"
+  },
+  "dashboard": {
+    "welcome": "वापसी पर स्वागत है, {{name}}!",
+    "totalStudents": "कुल छात्र",
+    "totalTeachers": "कुल शिक्षक",
+    "revenue": "राजस्व",
+    "averageAttendance": "औसत उपस्थिति"
+  }
+}

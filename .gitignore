@@ -113,3 +113,5 @@ secrets/
 .cache/
 .parcel-cache/
 storybook-static/
+frontend/test-results/
+frontend/playwright-report/

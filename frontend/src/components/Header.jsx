@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate as useNav } from 'react-router-dom';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // ── Notification icon by type ─────────────────────────────────────────────────
 const NotifIcon = ({ type }) => {
@@ -189,6 +190,9 @@ export const Header = ({ toggleMobileMenu }) => {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {/* Language Switcher */}
+                    <LanguageSwitcher />
+
                     {/* Theme Toggle */}
                     <motion.button
                         whileTap={{ rotate: 180, scale: 0.8 }}

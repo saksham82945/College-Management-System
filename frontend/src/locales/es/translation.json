@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Sistema de Gestión Universitaria",
+    "dashboard": "Tablero",
+    "students": "Estudiantes",
+    "teachers": "Profesores",
+    "finance": "Finanzas",
+    "attendance": "Asistencia",
+    "exams": "Exámenes",
+    "onlineClasses": "Clases en Línea",
+    "proctoredExam": "Examen Supervisado",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión"
+  },
+  "dashboard": {
+    "welcome": "¡Bienvenido de nuevo, {{name}}!",
+    "totalStudents": "Total de Estudiantes",
+    "totalTeachers": "Total de Profesores",
+    "revenue": "Ingresos",
+    "averageAttendance": "Asistencia Promedio"
+  }
+}

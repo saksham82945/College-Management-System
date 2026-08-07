@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { useAuthStore } from '@/store/auth';
 import { useTheme } from '@/context/ThemeContext';
-import { Calendar, Clock, BookOpen, Plus, ShieldCheck, Hourglass, CheckCircle2, CalendarDays, X } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Plus, ShieldCheck, Hourglass, CheckCircle2, CalendarDays, X, Video } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '@/services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader, Button } from '@/components';
 import { StatCard } from '@/components/dashboard/StatCard';
 
 export const ExamsPage = () => {
+    const navigate = useNavigate();
     const { user } = useAuthStore();
     const { isDarkMode } = useTheme();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -179,6 +181,16 @@ export const ExamsPage = () => {
                                                 Class: {exam.course || exam.class}
                                             </span>
                                         </div>
+                                        {new Date(exam.date) >= new Date() && user?.roles?.includes('STUDENT') && (
+                                            <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+                                                <Button 
+                                                    onClick={() => navigate(`/exam/${exam._id || exam.id}/proctor`)} 
+                                                    className="w-full text-xs font-bold py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                                                >
+                                                    <Video size={14} className="mr-2 inline" /> Take Proctored Exam
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>

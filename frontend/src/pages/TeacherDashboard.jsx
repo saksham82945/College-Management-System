@@ -5,8 +5,7 @@ import { useAuthStore } from '@/store/auth';
 import { apiClient } from '@/services/api';
 import { 
     Users, BookOpen, Calendar, CheckCircle, Clock, 
-    TrendingUp, ChevronRight, AlertCircle, Sparkles,
-    UserCheck, ClipboardList, Zap, GraduationCap, Target
+    UserCheck, ClipboardList, Zap, GraduationCap, Target, Video
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QuickAction } from '@/components/dashboard/QuickAction';
@@ -118,12 +117,13 @@ export const TeacherDashboard = () => {
                 </motion.div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                     {[
                         { label: 'Mark Attendance', icon: UserCheck, color: 'from-emerald-500 to-teal-600', action: () => navigate('/attendance') },
                         { label: 'My Students', icon: Users, color: 'from-indigo-500 to-blue-600', action: () => navigate('/students') },
                         { label: 'Manage Exams', icon: ClipboardList, color: 'from-purple-500 to-pink-600', action: () => navigate('/exams') },
                         { label: 'View Timetable', icon: Clock, color: 'from-orange-500 to-amber-600', action: () => navigate('/timetable') },
+                        { label: 'Host Class', icon: Video, color: 'from-pink-500 to-rose-600', action: () => navigate('/online-class') },
                     ].map(a => (
                         <QuickAction
                             key={a.label}
